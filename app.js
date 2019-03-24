@@ -13,6 +13,8 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(express.static('public'));
 
+server.listen(8080);
+
 app.get('/', function (req, res) {
   res.render('index.html');
 });
@@ -71,7 +73,8 @@ io.sockets.on('connection', function (socket) {
 		socket.leave(socket.room);
 	});
 });
-
+/*
 app.listen(3443, function() {
   console.log('Connected, 3443port!!');
 });
+*/
