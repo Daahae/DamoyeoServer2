@@ -13,7 +13,7 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(express.static('public'));
 
-server.listen(8080);
+server.listen(3443);
 
 app.get('/', function (req, res) {
   res.render('index.html');
@@ -21,16 +21,16 @@ app.get('/', function (req, res) {
 // usernames which are currently connected to the chat
 var usernames = {};
 
-// rooms which are currently available in chat
+
 var rooms = ['room1','room2','room3'];
 
 io.sockets.on('connection', function (socket) {
 
-	// when the client emits 'adduser', this listens and executes
+	//adduser 호출시 이 함수가 listen 후 실행
 	socket.on('adduser', function(username){
 		// store the username in the socket session for this client
 		socket.username = username;
-		// store the room name in the socket session for this client
+
 		socket.room = 'room1';
 		// add the client's username to the global list
 		usernames[username] = username;
@@ -73,8 +73,3 @@ io.sockets.on('connection', function (socket) {
 		socket.leave(socket.room);
 	});
 });
-/*
-app.listen(3443, function() {
-  console.log('Connected, 3443port!!');
-});
-*/

@@ -1,7 +1,7 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
 <script>
-	socket = io.connect('http://localhost:8080');
+	socket = io.connect('http://localhost:3443');
 
 	// on connection to server, ask for user's name with an anonymous callback
 	socket.on('connect', function(){
@@ -9,12 +9,12 @@
 		socket.emit('adduser', prompt("What's your name?"));
 	});
 
-	// listener, whenever the server emits 'updatechat', this updates the chat body
+	// 서버가 udatechat 을 emit 할시 서버의 body에 추가
 	socket.on('updatechat', function (username, data) {
 		$('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
 	});
 
-	// listener, whenever the server emits 'updaterooms', this updates the room the client is in
+	// listener, 서버가 updaterooms 호출 시 
 	socket.on('updaterooms', function(rooms, current_room) {
 		$('#rooms').empty();
 		$.each(rooms, function(key, value) {
