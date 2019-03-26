@@ -2,19 +2,23 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
 <script>
 	socket = io.connect('http://localhost:3443');
+	//localhost:3443의 소켓과 연결
 
 	// on connection to server, ask for user's name with an anonymous callback
 	socket.on('connect', function(){
+		// connect라는 함수로 선언하는꼴
 		// call the server-side function 'adduser' and send one parameter (value of prompt)
 		socket.emit('adduser', prompt("What's your name?"));
+		//서버의 adduser함수로 emit
 	});
 
 	// 서버가 udatechat 을 emit 할시 서버의 body에 추가
 	socket.on('updatechat', function (username, data) {
 		$('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
+		// $는 제이쿼리에접근가능한 식별자
 	});
 
-	// listener, 서버가 updaterooms 호출 시 
+	// listener, 서버가 updaterooms 호출 시
 	socket.on('updaterooms', function(rooms, current_room) {
 		$('#rooms').empty();
 		$.each(rooms, function(key, value) {
