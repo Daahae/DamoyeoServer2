@@ -8,8 +8,13 @@ var express = require('express'),
 var request = require('sync-request');
 var exec = require('child_process').execFileSync;
 var path = require('path');
-
-
+var errorHandlingModule = require('./errorHandlingModule.js');
+var runAlgorithmModule = require('./runAlgorithmModule.js');
+var transPortInfoModule = require('./transportLib/transportInfoModule.js');
+var usersToMidModule = require('./transportLib/usersToMidModule.js');
+var transportJsonParseModule = require('./transportLib/transportJsonParseModule.js');
+var nearBySearchModule = require('./nearBySearchLib/NearbySearch.js');
+var nearBySearchDetailModule = require('./nearBySearchLib/GetDetailInfo.js');
 
 app.set('views', __dirname + '/view');
 app.engine('html', require('ejs').renderFile);
@@ -20,14 +25,26 @@ app.use(bodyParser.urlencoded({
 app.use(express.static('public'));
 
 server.listen(3443);
+console.log("connect 3443port!");
+
+app.get('/test', function(req, res) {
+  var jsonData;
+  var landmarkObject = new Object();
+  var testMidInfo = new Array(37.2839068, 126.9722112);
+  jsonData = transPortInfoModule.getInfo(37.2839068, 126.9722112, 37.5502596, 127.073139);
+  res.send(jsonData);
+})
+
 
 app.get('/chat', function(req, res) {
   res.render('index.html');
 });
+
+
+
+// 멀티채널 가이드
 // usernames which are currently connected to the chat
 var usernames = {};
-
-
 var rooms = ['room1', 'room2', 'room3'];
 
 io.sockets.on('connection', function(socket) {
