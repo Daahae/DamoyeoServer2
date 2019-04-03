@@ -52,15 +52,15 @@ app.get('/chat', function(req, res) {
   res.render('index.html');
 });
 
-app.get('/login', function(req, res){
+app.get('/login', function(req, res) {
   var reqArray = new Array();
   var sql = 'select * from user';
   conn.query(sql, function(err, results, fields) {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(results);
-      }
+    if (err) {
+      console.log(err);
+    } else {
+      res.send(results);
+    }
   });
 })
 /* 로그인 정보가 없을 시 디비에 계정추가, 안드에 0반환
@@ -68,7 +68,28 @@ app.get('/login', function(req, res){
 */
 app.post('/login', function(req, res) {
   var reqArray = JSON.parse(req.body.userLoginInfo);
-  console.log(reqArray);
+  var resObj = new Object();
+  //console.log(reqArray);
+  var email = reqArray.email;
+  var nickname = reqArray.nickname;
+  console.log(email + " " + nickname);
+
+  resObj.history = 0;
+
+  var sql = "INSERT INTO user (email, nickname) VALUES (?, ?)";
+  conn.query(sql, [email, nickname], function(err, results, fields) {
+    if (err) {
+      console.log("기본키 중복");
+      resObj.history = 1;
+      console.log("return 1");
+    } else {
+      console.log("계정삽입 완료 return 0");
+      resObj.history = 0;
+    }
+    console.log("res.send완료");
+    res.send(resObj);
+  });
+
 })
 
 
