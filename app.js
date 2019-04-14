@@ -4,42 +4,32 @@ var express = require('express'),
   server = http.createServer(app),
   io = require('socket.io').listen(server),
   bodyParser = require('body-parser');
-
 var request = require('sync-request');
 var exec = require('child_process').execFileSync;
 var path = require('path');
 var errorHandlingModule = require('./errorHandlingModule.js');
 var runAlgorithmModule = require('./runAlgorithmModule.js');
+var dbModule = require('./dbModule.js');
 var transPortInfoModule = require('./transportLib/transportInfoModule.js');
 var usersToMidModule = require('./transportLib/usersToMidModule.js');
 var transportJsonParseModule = require('./transportLib/transportJsonParseModule.js');
 var nearBySearchModule = require('./nearBySearchLib/NearbySearch.js');
 var nearBySearchDetailModule = require('./nearBySearchLib/GetDetailInfo.js');
 var mysql = require('mysql');
+var errorHandlingModule = require('./errorHandlingModule.js');
+var deasync = require('deasync');
 var midInfo = new Array(37.5637399, 126.9838655);
 
 app.set('views', __dirname + '/view');
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html'); //default엔진을 html로
 app.use(bodyParser.urlencoded({
-  extended: false
+  extended: true
 }));
+app.use(bodyParser.json());
 app.use(express.static('public'));
 server.listen(3443);
 console.log("Connected 3443port!");
-
-//db 계정 정보
-var conn = mysql.createConnection({
-  host: 'localhost',
-  port: '3306',
-  user: 'root',
-  password: '11111111',
-  database: 'damoyeo2db'
-});
-
-conn.connect();
-
-
 
 app.get('/test', function(req, res) {
   var jsonData;
@@ -52,40 +42,56 @@ app.get('/chat', function(req, res) {
   res.render('index.html');
 });
 
-app.get('/login', function(req, res) {
-  var reqArray = new Array();
-  var sql = 'select * from user';
-  conn.query(sql, function(err, results, fields) {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(results);
-    }
-  });
-})
+
+/* ----------------------- 위는 테스트 아래는 실 코드 --------------------------------------*/
+
 /* 로그인 정보가 없을 시 디비에 계정추가, 안드에 0반환
    있을 시 1반환
 */
 app.post('/login', function(req, res) {
-  var reqArray = JSON.parse(req.body.userLoginInfo);
-  var resObj = new Object();
-  var email = reqArray.email;
-  var nickname = reqArray.nickname;
-
-  var sql = "INSERT INTO user (email, nickname) VALUES (?, ?)";
-  conn.query(sql, [email, nickname], function(err, results, fields) {
-    if (err) {
-      console.log("기본키 중복");
-      resObj.history = 1;
-    } else {
-      console.log("계정삽입 완료 return 0");
-      resObj.history = 0;
-    }
-    res.send(resObj);
-  });
-
+  var resObj = dbModule.insertUserLoginInfo(req);
+  res.send(resObj);
 })
 
+/*  카테고리 페이지. 분류해서 interestCategory에 삽입
+    201스포츠 202노래방 203영화관 204오락실 205공원 206피씨방 207기타
+    301포차 302바 303클럽 304기타
+    401백화점(아울렛) 402대형마트 402시장 403기타
+    501한식 502양식 502일식 504중식 505기타
+*/
+app.post('/category', function(req, res) {
+  var resObj = dbModule.insertCategory(req);
+  res.send(resObj);
+})
+
+/* 친구추가 제거 (중간 이후)
+
+*/
+app.post('/friend', function(req, res) {
+  var reqObj = JSON.parse(req.body.friend);
+  console.log(reqObj);
+  var resObj = new Object();
+  res.send(resObj)
+})
+
+/* 지도 뷰 갱신
+
+*/
+app.post('/renewPos', function(req, res) {
+  var resObj = new Object();
+  resObj.resArr = new Array();
+  resObj.resArr = dbModule.updateUserPosInfo(req);
+  res.send(resObj);
+})
+
+/* 좌표 정보 초기화
+
+*/
+app.post('/initPos', function(req, res) {
+  var resObj = new Object();
+  resObj = dbModule.initUserPosInfo(req);
+  res.send(resObj);
+})
 
 
 /* 안드로이드에서 유저들좌표를 전송받음(req)

@@ -33,6 +33,7 @@ module.exports.getJsonData = function(obj) {
     var busType = null
     var subwayCode = null
     var trafficType = subPathArr[i].trafficType;
+
     var sectionTime = subPathArr[i].sectionTime;
 
     if (!trafficTypeModule.walkType(trafficType)) { // 지하철이나 버스 이용 시
@@ -59,6 +60,7 @@ module.exports.getJsonData = function(obj) {
     trafficJsonObject.subwayCode = subwayCode;
     trafficJsonObject.busType = busType;
     trafficJsonObject.trafficType = trafficType;
+    if(sectionTime != 0)
     trafficJsonObject.sectionTime = sectionTime;
     trafficJsonObject.transportNumber = transportNumber;
     trafficJsonObject.startStation = startStation;
