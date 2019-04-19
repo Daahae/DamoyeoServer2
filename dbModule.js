@@ -188,7 +188,6 @@ conn.query(sql, [roomNum], function(err, results, fields) {
               userObj.startLng = users[i].startLng;
               resObj.userArr.push(userObj);
             }
-            //console.log(resObj);
           }
         });
   }
