@@ -19,7 +19,6 @@ conn.connect();
 */
 module.exports.insertUserLoginInfo = function(req) {
   var reqObj = JSON.parse(req.body.userLoginInfo);
-  //var reqObj = req.body.userPos;
   var resObj = new Object();
   var email = reqObj.email;
   var nickname = reqObj.nickname;
@@ -34,7 +33,7 @@ module.exports.insertUserLoginInfo = function(req) {
       resObj.history = 0;
     }
   });
-  while (!errorHandlingModule.isObjectData(resObj)) { // 비동기 처리
+  while (!errorHandlingModule.isObjectData(resObj)) {
     deasync.sleep(100);
   }
   return resObj;
@@ -133,20 +132,74 @@ module.exports.insertCategory = function(req) {
     var moreLike = reqArray[i].moreLike;
     var like = reqArray[i].like;
 
-    var sql = "INSERT INTO `interestcategory` (`email`, `mostLike`, `moreLike`, `like`) VALUES (?, ?, ?, ?)";
+    var sql = "INSERT INTO interestcategory (email, mostLike, moreLike, normalLike) VALUES (?, ?, ?, ?)";
     conn.query(sql, [email, mostLike, moreLike, like], function(err, results, fields) {
       if (err) {
         console.log("카테고리 삽입 실패");
-        resObj.history = 1;
+        console.log(err);
+        resObj.msg = "Category insert fail";
       } else {
         console.log("카테고리 삽입 완료");
-        resObj.history = 0;
+        resObj.msg = "Category insert success"
       }
     });
   }
-  while (!errorHandlingModule.isData(resObj)) { // 비동기 처리
+  while (!errorHandlingModule.isObjectData(resObj)) { // 비동기 처리
     deasync.sleep(100);
   }
   console.log(resObj);
   return resObj;
+}
+
+/* 방번호를 받아 해당하는 채팅방의 정보 리턴
+   중간지점 이미 찾았는지 리턴
+   해당 방의 사람들이 찍은 마커 정보 반환
+*/
+module.exports.selectChatRoom = function(req) {
+var reqObj = JSON.parse(req.body.chatRoom);
+var resObj = new Object();
+resObj.users = new Array();
+var email = reqObj.email;
+var roomNum = reqObj.roomNumber;
+
+// 방 입장시 증가
+var sql = "SELECT * FROM chatroom WHERE roomNum = ?";
+conn.query(sql, [roomNum], function(err, results, fields) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log("chatroom 검색 완료");
+      resObj.roomNum = results.roomNum;
+      resObj.count = results.count;
+      resObj.midFlag = results.midFlag;
+      var user1 = results.user1;
+      var user2 = results.user2;
+      var user3 = results.user3;
+      var user4 = results.user4;
+      var user5 = results.user5;
+      var user6 = results.user6;
+
+      var sql = "SELECT * FROM user WHERE email = ? or email = ? or email = ? or email = ? or email = ? or email = ?";
+      conn.query(sql, [user1, user2, user3, user4, user5, user6], function(err, users, fields) {
+          if (err) {
+            console.log(err);
+          } else {
+            for (var i = 0; i < users.length; i++) {
+              resObj.users[i].email = users[i].email;
+              resObj.users[i].nickname = users[i].nickname;
+              resObj.users[i].startLat = users[i].startLat;
+              resObj.users[i].startLng = users[i].startLng;
+            }
+          }
+        });
+  }
+});
+while (!errorHandlingModule.isObjectData(resObj)) { // 비동기 처리
+  deasync.sleep(100);
+}
+return resObj;
+
+
+
+
 }

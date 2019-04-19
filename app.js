@@ -18,6 +18,8 @@ var nearBySearchDetailModule = require('./nearBySearchLib/GetDetailInfo.js');
 var mysql = require('mysql');
 var errorHandlingModule = require('./errorHandlingModule.js');
 var deasync = require('deasync');
+var exec = require('child_process').execFileSync;
+var path = require('path');
 var midInfo = new Array(37.5637399, 126.9838655);
 
 app.set('views', __dirname + '/view');
@@ -31,11 +33,29 @@ app.use(express.static('public'));
 server.listen(3443);
 console.log("Connected 3443port!");
 
+
+
+
 app.get('/test', function(req, res) {
-  var jsonData;
-  var landmarkObject = new Object();
-  jsonData = transPortInfoModule.getInfo(37.2839068, 126.9722112, 37.5502596, 127.073139);
-  res.send(jsonData);
+  var exec = require('child_process').execFileSync;
+   var jsonPath = path.join(__dirname,'', 'ALGORITHM');
+   console.log(jsonPath);
+
+   var tmp = '{\"userArr\":[{\"latitude\":37.550277,\"longitude\":127.073053},\
+   {\"latitude\":37.545036,\"longitude\":127.054245},\
+   {\"latitude\":37.535413,\"longitude\":127.062388},\
+   {\"latitude\":37.531359,\"longitude\":127.083799}]}';
+   var resultObject;
+   try {
+     resultObject = exec(jsonPath, [tmp], {
+       encoding: "utf8"
+     });
+     //resultObject = JSON.parse(resultObject);
+   } catch (err) {
+     err.stdout;
+     console.log(err);
+   }
+   res.send(resultObject);
 })
 
 app.get('/chat', function(req, res) {
@@ -74,6 +94,11 @@ app.post('/friend', function(req, res) {
   res.send(resObj)
 })
 
+app.post('/chatRoom', function(req, res) {
+  var resObj = dbModule.selectChatRoom(req);
+  res.send(resObj)
+})
+
 /* 지도 뷰 갱신
 
 */
@@ -99,8 +124,7 @@ app.post('/initPos', function(req, res) {
    유저들좌표에서 중앙지점까지의 교통정보, 랜드마크 정보 반환(usersToMidArray)
 */
 app.post('/usersToMid', function(req, res) {
-  var usersToMidArray = usersToMidModule.getInfo(req, midInfo[0], midInfo[1]); // 안드로이드에서 넘겨준 users 정보와 함께 모듈 실행
-  res.send(usersToMidArray);
+  var usersToMidArray = usersToMidModule.getInfo(req, midInfo[0], midInfo[1]);
 })
 
 /* 대중교통 경로정보
