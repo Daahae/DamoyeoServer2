@@ -188,17 +188,15 @@ conn.query(sql, [roomNum], function(err, results, fields) {
               userObj.startLng = users[i].startLng;
               resObj.userArr.push(userObj);
             }
-            console.log(resObj);
+            //console.log(resObj);
           }
         });
   }
 });
-while (!errorHandlingModule.isObjectData(resObj)) { // 비동기 처리
+
+while (!errorHandlingModule.isData(resObj.userArr)) { // 비동기 처리
   deasync.sleep(100);
 }
+console.log(resObj);
 return resObj;
-
-
-
-
 }
