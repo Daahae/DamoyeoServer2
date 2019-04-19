@@ -34,6 +34,12 @@ server.listen(3443);
 console.log("Connected 3443port!");
 
 
+app.get('/', function(req, res) {
+  var jsonData;
+  jsonData = transPortInfoModule.getInfo(37.2839068, 126.9722112, 37.5502596, 127.073139);
+  res.send(jsonData);
+});
+
 
 
 app.get('/test', function(req, res) {

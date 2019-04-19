@@ -54,8 +54,6 @@ module.exports.updateUserPosInfo = function(req) {
   var email = reqArray.email;
   var startLat = reqArray.startLat + "";
   var startLng = reqArray.startLng + "";
-  console.log("reqArray : " + reqArray);
-  console.log("startLat : " + startLat);
 
 
   var sql = "UPDATE user SET startLat = ?, startLng = ? WHERE email = ?";
@@ -86,7 +84,6 @@ module.exports.updateUserPosInfo = function(req) {
   while (!errorHandlingModule.isData(resArr)) { // 비동기 처리
     deasync.sleep(100);
   }
-  console.log(resArr);
   return resArr;
 }
 
@@ -126,7 +123,6 @@ module.exports.insertCategory = function(req) {
 
   for (var i = 0; i < reqArray.length; i++) {
     // 반복문 돌면서 삽입
-    console.log(reqArray[i].mostLike + "???");
     var email = reqArray[i].email;
     var mostLike = reqArray[i].mostLike;
     var moreLike = reqArray[i].moreLike;
@@ -147,7 +143,6 @@ module.exports.insertCategory = function(req) {
   while (!errorHandlingModule.isObjectData(resObj)) { // 비동기 처리
     deasync.sleep(100);
   }
-  console.log(resObj);
   return resObj;
 }
 
@@ -158,9 +153,10 @@ module.exports.insertCategory = function(req) {
 module.exports.selectChatRoom = function(req) {
 var reqObj = JSON.parse(req.body.chatRoom);
 var resObj = new Object();
-resObj.users = new Array();
+resObj.userArr = new Array();
 var email = reqObj.email;
-var roomNum = reqObj.roomNumber;
+var roomNum = parseInt(reqObj.roomNumber);
+console.log("roomNum : "+roomNum);
 
 // 방 입장시 증가
 var sql = "SELECT * FROM chatroom WHERE roomNum = ?";
@@ -168,28 +164,31 @@ conn.query(sql, [roomNum], function(err, results, fields) {
     if (err) {
       console.log(err);
     } else {
-      console.log("chatroom 검색 완료");
-      resObj.roomNum = results.roomNum;
-      resObj.count = results.count;
-      resObj.midFlag = results.midFlag;
-      var user1 = results.user1;
-      var user2 = results.user2;
-      var user3 = results.user3;
-      var user4 = results.user4;
-      var user5 = results.user5;
-      var user6 = results.user6;
-
+      resObj.roomNum = results[0].roomNum;
+      resObj.count = results[0].count;
+      resObj.midFlag = results[0].midFlag;
+      var user1 = results[0].user1;
+      var user2 = results[0].user2;
+      var user3 = results[0].user3;
+      var user4 = results[0].user4;
+      var user5 = results[0].user5;
+      var user6 = results[0].user6;
       var sql = "SELECT * FROM user WHERE email = ? or email = ? or email = ? or email = ? or email = ? or email = ?";
       conn.query(sql, [user1, user2, user3, user4, user5, user6], function(err, users, fields) {
           if (err) {
             console.log(err);
           } else {
+            // 존재하는 유저만 걸러서 정보 select
             for (var i = 0; i < users.length; i++) {
-              resObj.users[i].email = users[i].email;
-              resObj.users[i].nickname = users[i].nickname;
-              resObj.users[i].startLat = users[i].startLat;
-              resObj.users[i].startLng = users[i].startLng;
+              console.log(users[i].email);
+              var userObj =new Object();
+              userObj.email = users[i].email;
+              userObj.nickname = users[i].nickname;
+              userObj.startLat = users[i].startLat;
+              userObj.startLng = users[i].startLng;
+              resObj.userArr.push(userObj);
             }
+            console.log(resObj);
           }
         });
   }
