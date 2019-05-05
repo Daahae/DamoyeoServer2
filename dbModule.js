@@ -2,7 +2,6 @@ var mysql = require('mysql');
 var errorHandlingModule = require('./errorHandlingModule.js');
 var deasync = require('deasync');
 
-//db 계정 정보
 var conn = mysql.createConnection({
   host: 'localhost',
   port: '3306',
@@ -88,8 +87,8 @@ module.exports.updateUserPosInfo = function(req) {
 }
 
 module.exports.initUserPosInfo = function(req) {
-  var reqArray = JSON.parse(req.body.userPos); // 안드수신용
-  //var reqArray = req.body.userPos; // 테스트용
+  var reqArray = JSON.parse(req.body.userPos);
+  //var reqArray = req.body.userPos;
   var resObj = new Object();
   var email = reqArray.email;
   var startLat = -1;
@@ -151,16 +150,16 @@ module.exports.insertCategory = function(req) {
    해당 방의 사람들이 찍은 마커 정보 반환
 */
 module.exports.selectChatRoom = function(req) {
-var reqObj = JSON.parse(req.body.chatRoom);
-var resObj = new Object();
-resObj.userArr = new Array();
-var email = reqObj.email;
-var roomNum = parseInt(reqObj.roomNumber);
-console.log("roomNum : "+roomNum);
+  var reqObj = JSON.parse(req.body.chatRoom);
+  var resObj = new Object();
+  resObj.userArr = new Array();
+  var email = reqObj.email;
+  var roomNum = parseInt(reqObj.roomNumber);
+  console.log("roomNum : " + roomNum);
 
-// 방 입장시 증가
-var sql = "SELECT * FROM chatroom WHERE roomNum = ?";
-conn.query(sql, [roomNum], function(err, results, fields) {
+  // 방 입장시 증가
+  var sql = "SELECT * FROM chatroom WHERE roomNum = ?";
+  conn.query(sql, [roomNum], function(err, results, fields) {
     if (err) {
       console.log(err);
     } else {
@@ -175,26 +174,55 @@ conn.query(sql, [roomNum], function(err, results, fields) {
       var user6 = results[0].user6;
       var sql = "SELECT * FROM user WHERE email = ? or email = ? or email = ? or email = ? or email = ? or email = ?";
       conn.query(sql, [user1, user2, user3, user4, user5, user6], function(err, users, fields) {
-          if (err) {
-            console.log(err);
-          } else {
-            // 존재하는 유저만 걸러서 정보 select
-            for (var i = 0; i < users.length; i++) {
-              var userObj =new Object();
-              userObj.email = users[i].email;
-              userObj.nickname = users[i].nickname;
-              userObj.startLat = users[i].startLat;
-              userObj.startLng = users[i].startLng;
-              resObj.userArr.push(userObj);
-            }
+        if (err) {
+          console.log(err);
+        } else {
+          // 존재하는 유저만 걸러서 정보 select
+          for (var i = 0; i < users.length; i++) {
+            var userObj = new Object();
+            userObj.email = users[i].email;
+            userObj.nickname = users[i].nickname;
+            userObj.startLat = users[i].startLat;
+            userObj.startLng = users[i].startLng;
+            resObj.userArr.push(userObj);
           }
-        });
-  }
-});
+        }
+      });
+    }
+  });
 
-while (!errorHandlingModule.isData(resObj.userArr)) { // 비동기 처리
-  deasync.sleep(100);
+  while (!errorHandlingModule.isData(resObj.userArr)) { // 비동기 처리
+    deasync.sleep(100);
+  }
+  console.log(resObj);
+  return resObj;
 }
-console.log(resObj);
-return resObj;
+
+module.exports.selectRelation = function(req) {
+  var reqObj = JSON.parse(req.body.friend);
+  var resObj = new Object();
+  var userObj = new Object();
+  resObj.userArr = new Array();
+  console.log(reqObj.email);
+
+  var sql = "SELECT DISTINCT email, nickname, relation FROM user, relation where email in (select user2 from relation where user1 =? or user2 =?)";
+  conn.query(sql, [reqObj.email,reqObj.email], function(err, results, fields) {
+    if (err) {
+      console.log(err);
+    } else {
+      for (var i = 0; i < results.length; i++) {
+        var userObj = new Object();
+        userObj.email = results[i].email;
+        userObj.nickname = results[i].nickname;
+        userObj.relation = results[i].relation;
+        resObj.userArr.push(userObj);
+      }
+      console.log(resObj);
+    }
+  });
+ while (!errorHandlingModule.isData(resObj.userArr)) { // 비동기 처리
+   deasync.sleep(100);
+ }
+  console.log(resObj);
+  return resObj;
 }

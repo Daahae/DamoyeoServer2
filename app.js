@@ -41,7 +41,7 @@ io.sockets.on('connection', function(socket) {
   var rooms = ['room1', 'room2', 'room3'];
   console.log('Socket ID : ' + socket.id + ', Connect');
 
-  socket.on('clientMessage', function(data) {
+  socket.on('clientMessage', function(data) { // email 받아서 어느방에 권한이 있는지 수정
     console.log('Client Message : ' + data);
     var message = {
       msg: 'you send',
@@ -53,16 +53,19 @@ io.sockets.on('connection', function(socket) {
 
   socket.on('addUser', function(reqObj) {
     var reqObj = JSON.parse(reqObj);
+    var emailList = new Array();
+    emailList = reqObj.emailList;
+    var cnt = 0;
 
-    socket.username = username;
-    socket.room = 'room1';
-    usernames[username] = username;
-    //console.log("room1"+ socket.username);
+    socket.room = reqObj.number;
+    console.log(reqObj.emailList);
+    socket.join(socket.room);
+    socket.emit('updateChat', 'you have connected to'+ socket.room);
 
-    socket.join('room1');
-    socket.emit('updateChat', 'you have connected to room1');
-    socket.broadcast.to('room1').emit('updateChat', username + ' has connected to this room');
-  //  socket.emit('updateRooms', rooms, 'room1');
+    for(var i = 0 ; i < emailList.length;i++){
+      socket.broadcast.to(socket.room).emit('updateChat', emailList[i] + ' has connected to this room');
+    }
+  //socket.emit('updateRooms', rooms, 'room1');
   });
 });
 
@@ -128,9 +131,7 @@ app.post('/category', function(req, res) {
 
 */
 app.post('/friend', function(req, res) {
-  var reqObj = JSON.parse(req.body.friend);
-  console.log(reqObj);
-  var resObj = new Object();
+  var resObj = dbModule.selectRelation(req);
   res.send(resObj)
 })
 
