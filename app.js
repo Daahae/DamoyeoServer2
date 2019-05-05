@@ -37,7 +37,10 @@ console.log("Connected 3443port!@!@!@");
 
 
 io.sockets.on('connection', function(socket) {
+  var usernames = {};
+  var rooms = ['room1', 'room2', 'room3'];
   console.log('Socket ID : ' + socket.id + ', Connect');
+
   socket.on('clientMessage', function(data) {
     console.log('Client Message : ' + data);
     var message = {
@@ -46,21 +49,20 @@ io.sockets.on('connection', function(socket) {
     };
     socket.emit('serverMessage', message);
   });
-  var usernames = {};
-  var rooms = ['room1', 'room2', 'room3'];
 
-  socket.on('adduser', function(username) {
+
+  socket.on('addUser', function(reqObj) {
+    var reqObj = JSON.parse(reqObj);
 
     socket.username = username;
     socket.room = 'room1';
     usernames[username] = username;
-    // send client to room 1
+    //console.log("room1"+ socket.username);
+
     socket.join('room1');
-    // echo to client they've connected
-    socket.emit('updatechat', 'SERVER', 'you have connected to room1');
-    // echo to room 1 that a person has connected to their room
-    socket.broadcast.to('room1').emit('updatechat', 'SERVER', username + ' has connected to this room');
-    socket.emit('updaterooms', rooms, 'room1');
+    socket.emit('updateChat', 'you have connected to room1');
+    socket.broadcast.to('room1').emit('updateChat', username + ' has connected to this room');
+  //  socket.emit('updateRooms', rooms, 'room1');
   });
 });
 
@@ -191,6 +193,7 @@ app.post('/midDetailCategory', function(req, res) {
 })
 
 
+/*
 // when the client emits 'sendchat', this listens and executes
 socket.on('sendchat', function(data) {
   // we tell the client to execute 'updatechat' with 2 parameters
@@ -220,3 +223,4 @@ socket.on('disconnect', function() {
   socket.broadcast.emit('updatechat', 'SERVER', socket.username + ' has disconnected');
   socket.leave(socket.room);
 });
+*/
