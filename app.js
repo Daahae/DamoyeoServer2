@@ -74,6 +74,8 @@ io.sockets.on('connection', function(socket) {
     }
     io.to(socket.room).emit('updateChat','[broadcast]'+emailList + ' has connected to this room');// 그룹 전체
 
+
+
     //socket.broadcast.to(socket.room).emit('updateChat', '[broadcast] '+emailList + ' has connected to this room');
     //socket.emit('updateRooms', rooms, 'room1');
   });
