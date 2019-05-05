@@ -180,7 +180,6 @@ conn.query(sql, [roomNum], function(err, results, fields) {
           } else {
             // 존재하는 유저만 걸러서 정보 select
             for (var i = 0; i < users.length; i++) {
-              console.log(users[i].email);
               var userObj =new Object();
               userObj.email = users[i].email;
               userObj.nickname = users[i].nickname;
