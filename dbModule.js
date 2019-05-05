@@ -38,6 +38,20 @@ module.exports.insertUserLoginInfo = function(req) {
   return resObj;
 }
 
+/* 친구 계정과 함께 방 생성
+   디비에 사용자 기록
+   addUser
+*/
+module.exports.insertUsersToChatRoom = function(count,user,room, i) {
+  var sql = "UPDATE chatroom SET `count` = ?, user"+i+" =? WHERE roomNum = ?";
+  conn.query(sql, [count, user,room], function(err, results, fields) {
+    if (err)
+      console.log("채팅방 삽입 에러");
+    else
+      console.log("채팅방 삽입 완료");
+  });
+}
+
 
 /* --------------------------------------------------------------지도 관련 */
 /* mapview에서의 동기화를 위한 업데이트 메서드
@@ -130,11 +144,9 @@ module.exports.insertCategory = function(req) {
     var sql = "INSERT INTO interestcategory (email, mostLike, moreLike, normalLike) VALUES (?, ?, ?, ?)";
     conn.query(sql, [email, mostLike, moreLike, like], function(err, results, fields) {
       if (err) {
-        console.log("카테고리 삽입 실패");
         console.log(err);
         resObj.msg = "Category insert fail";
       } else {
-        console.log("카테고리 삽입 완료");
         resObj.msg = "Category insert success"
       }
     });

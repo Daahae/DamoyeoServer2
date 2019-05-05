@@ -41,35 +41,45 @@ io.sockets.on('connection', function(socket) {
   var rooms = ['room1', 'room2', 'room3'];
   console.log('Socket ID : ' + socket.id + ', Connect');
 
-  socket.on('clientMessage', function(data) { // email 받아서 어느방에 권한이 있는지 수정
-    console.log('Client Message : ' + data);
+  /* email 받아서 어느방에 권한이 있는지 수정
+   */
+
+  socket.on('clientMessage', function(currentUser) {
+    console.log('CurrentUser : ' + currentUser);
+    socket.currentUser = currentUser; // 소켓 세션에 현재 접속 유저 등록
     var message = {
-      msg: 'you send',
-      data: data
+      msg: 'current user is',
+      data: currentUser
     };
     socket.emit('serverMessage', message);
   });
 
+  /* 친구와 함께 방 생성
 
+  */
   socket.on('addUser', function(reqObj) {
     var reqObj = JSON.parse(reqObj);
-    var emailList = new Array();
-    emailList = reqObj.emailList;
-    var cnt = 0;
+    var emailList = emailList = reqObj.emailList.split(",");
 
-    socket.room = reqObj.number;
+    socket.room = reqObj.room;
     console.log(reqObj.emailList);
     socket.join(socket.room);
-    socket.emit('updateChat', 'you have connected to'+ socket.room);
+    socket.emit('updateChat', 'you have connected to ' + socket.room);
 
-    for(var i = 0 ; i < emailList.length;i++){
-      socket.broadcast.to(socket.room).emit('updateChat', emailList[i] + ' has connected to this room');
+
+
+    for (var i = 0; i < emailList.length; i++) {
+      console.log(emailList[i]);
+      dbModule.insertUsersToChatRoom(emailList.length, emailList[i], socket.room, i + 1); // 디비에 사용자 기록
     }
-  //socket.emit('updateRooms', rooms, 'room1');
+    io.to(socket.room).emit('updateChat','[broadcast]'+emailList + ' has connected to this room');// 그룹 전체
+
+    //socket.broadcast.to(socket.room).emit('updateChat', '[broadcast] '+emailList + ' has connected to this room');
+    //socket.emit('updateRooms', rooms, 'room1');
   });
 });
 
-
+/*-------------------------------------------------------------------------------*/
 
 app.get('/', function(req, res) {
   var jsonData;
@@ -127,7 +137,7 @@ app.post('/category', function(req, res) {
   res.send(resObj);
 })
 
-/* 친구추가 제거 (중간 이후)
+/* 친구정보 가져오기, 친구 신청진행중 정보 포함
 
 */
 app.post('/friend', function(req, res) {
@@ -135,6 +145,10 @@ app.post('/friend', function(req, res) {
   res.send(resObj)
 })
 
+
+/* 채팅방 정보 넘겨주기
+
+*/
 app.post('/chatRoom', function(req, res) {
   var resObj = dbModule.selectChatRoom(req);
   res.send(resObj)
@@ -151,8 +165,7 @@ app.post('/renewPos', function(req, res) {
 })
 
 /* 좌표 정보 초기화
-
-*/
+ */
 app.post('/initPos', function(req, res) {
   var resObj = new Object();
   resObj = dbModule.initUserPosInfo(req);
