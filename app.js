@@ -60,27 +60,24 @@ io.sockets.on('connection', function(socket) {
   socket.on('addUser', function(reqObj) {
     var reqObj = JSON.parse(reqObj);
     var emailList = emailList = reqObj.emailList.split(",");
-
     socket.room = reqObj.room;
-    console.log(reqObj.emailList);
     socket.join(socket.room);
     socket.emit('updateChat', 'you have connected to ' + socket.room);
 
-
-
     for (var i = 0; i < emailList.length; i++) {
       console.log(emailList[i]);
-      dbModule.insertUsersToChatRoom(emailList.length, emailList[i], socket.room, i + 1); // 디비에 사용자 기록
+      dbModule.insertUsersToChatRoom(emailList.length, emailList[i], socket.room, i + 1); 
+      // 디비에 사용자 기록
     }
-    io.to(socket.room).emit('updateChat','[broadcast]'+emailList + ' has connected to this room');// 그룹 전체
-
-
+    io.to(socket.room).emit('updateChat','[broadcast]'+emailList + ' has connected to this room');
+    // 그룹 전체
 
     //socket.broadcast.to(socket.room).emit('updateChat', '[broadcast] '+emailList + ' has connected to this room');
     //socket.emit('updateRooms', rooms, 'room1');
   });
 });
 
+// 소켓 함수
 /*-------------------------------------------------------------------------------*/
 
 app.get('/', function(req, res) {
@@ -105,7 +102,7 @@ app.get('/test', function(req, res) {
     resultObject = exec(jsonPath, [tmp], {
       encoding: "utf8"
     });
-    //resultObject = JSON.parse(resultObject);
+    resultObject = JSON.parse(resultObject);
   } catch (err) {
     err.stdout;
     console.log(err);
@@ -118,7 +115,9 @@ app.get('/chat', function(req, res) {
 });
 
 
-/* ----------------------- 위는 테스트 아래는 실 코드 --------------------------------------*/
+// 테스트
+/* -------------------------------------------------------------*/
+// 채팅, 친구, 카테고리
 
 /* 로그인 정보가 없을 시 디비에 계정추가, 안드에 0반환
    있을 시 1반환
@@ -140,7 +139,6 @@ app.post('/category', function(req, res) {
 })
 
 /* 친구정보 가져오기, 친구 신청진행중 정보 포함
-
 */
 app.post('/friend', function(req, res) {
   var resObj = dbModule.selectRelation(req);
@@ -149,15 +147,22 @@ app.post('/friend', function(req, res) {
 
 
 /* 채팅방 정보 넘겨주기
-
 */
+app.post('/detailChatRoom', function(req, res) {
+  var resObj = dbModule.selectDetailChatRoom(req);
+  res.send(resObj)
+})
 app.post('/chatRoom', function(req, res) {
   var resObj = dbModule.selectChatRoom(req);
   res.send(resObj)
 })
 
-/* 지도 뷰 갱신
 
+// 채팅, 친구, 카테고리
+/*----------------------------------------------------------*/
+// 지도
+
+/* 지도 뷰 갱신
 */
 app.post('/renewPos', function(req, res) {
   var resObj = new Object();
@@ -169,11 +174,13 @@ app.post('/renewPos', function(req, res) {
 /* 좌표 정보 초기화
  */
 app.post('/initPos', function(req, res) {
-  var resObj = new Object();
-  resObj = dbModule.initUserPosInfo(req);
+  var resObj = dbModule.initUserPosInfo(req);
   res.send(resObj);
 })
 
+// 지도
+/*--------------------------------------------------------------------------*/
+// 알고리즘
 
 /* 안드로이드에서 유저들좌표를 전송받음(req)
    알고리즘 모듈에서 최적 중간지점과 대중교통 경로정보 가져옴(resultObject)**

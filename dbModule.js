@@ -15,6 +15,7 @@ conn.connect();
 
 /* 로그인 정보가 없을 시 디비에 계정추가, 안드에 0반환
    있을 시 1반환
+   /login
 */
 module.exports.insertUserLoginInfo = function(req) {
   var reqObj = JSON.parse(req.body.userLoginInfo);
@@ -40,7 +41,7 @@ module.exports.insertUserLoginInfo = function(req) {
 
 /* 친구 계정과 함께 방 생성
    디비에 사용자 기록
-   addUser
+   소켓함수 addUser
 */
 module.exports.insertUsersToChatRoom = function(count,user,room, i) {
   var sql = "UPDATE chatroom SET `count` = ?, user"+i+" =? WHERE roomNum = ?";
@@ -72,15 +73,12 @@ module.exports.updateUserPosInfo = function(req) {
   var sql = "UPDATE user SET startLat = ?, startLng = ? WHERE email = ?";
   conn.query(sql, [startLat, startLng, email], function(err, results, fields) {
     if (err) {
-      console.log("좌표갱신 실패");
       console.log(err);
     } else {
-      console.log("좌표갱신 완료");
       var sql = "SELECT * from user where startLat != -1";
       // 존재하는 사용자 마커 좌표 검색
       conn.query(sql, function(err, userInfo, fields) {
         if (err) {
-          console.log("검색 실패");
         } else {
           for (var i = 0; i < userInfo.length; i++) {
             var resObj = new Object();
@@ -100,6 +98,9 @@ module.exports.updateUserPosInfo = function(req) {
   return resArr;
 }
 
+/* 좌표정보 초기화
+   /initPos
+*/
 module.exports.initUserPosInfo = function(req) {
   var reqArray = JSON.parse(req.body.userPos);
   //var reqArray = req.body.userPos;
@@ -160,8 +161,9 @@ module.exports.insertCategory = function(req) {
 /* 방번호를 받아 해당하는 채팅방의 정보 리턴
    중간지점 이미 찾았는지 리턴
    해당 방의 사람들이 찍은 마커 정보 반환
+   /detailChatRoom
 */
-module.exports.selectChatRoom = function(req) {
+module.exports.selectDetailChatRoom = function(req) {
   var reqObj = JSON.parse(req.body.chatRoom);
   var resObj = new Object();
   resObj.userArr = new Array();
@@ -210,6 +212,43 @@ module.exports.selectChatRoom = function(req) {
   return resObj;
 }
 
+/*  이메일이 속해있는 전체 방정보 가져오기
+    /chatRoom      
+ */
+module.exports.selectChatRoom = function(req) {
+  var reqObj = JSON.parse(req.body.chatRoom);
+  var resObj = new Object();
+  resObj.userArr = new Array();
+  var email = reqObj.email;
+  var sql = "SELECT * FROM chatroom WHERE user1 = ? or user2 = ? or user3 = ? or user4 = ? or user5 = ? or user6 = ?";
+  conn.query(sql, [email,email,email,email,email,email], function(err, results, fields) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(results);
+      /*
+      for (var i = 0; i < results.length; i++) {
+        var userObj = new Object();
+        userObj.email = results[i].roomNum;
+        userObj.nickname = results[i].count;
+        userObj.startLat = results[i].midFlag;
+        userObj.startLng = results[i].user1;
+        resObj.userArr.push(userObj);
+      }
+      */
+    }
+  })
+
+  //while (!errorHandlingModule.isData(resObj.userArr)) { // 비동기 처리
+   // deasync.sleep(100);
+ // }
+  console.log(resObj);
+  return resObj;
+}
+
+/* 친구관계 가저오기
+
+ */
 module.exports.selectRelation = function(req) {
   var reqObj = JSON.parse(req.body.friend);
   var resObj = new Object();
