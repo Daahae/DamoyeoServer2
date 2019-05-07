@@ -145,7 +145,6 @@ app.post('/friend', function(req, res) {
   res.send(resObj)
 })
 
-
 /* 채팅방 정보 넘겨주기
 */
 app.post('/detailChatRoom', function(req, res) {
