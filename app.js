@@ -138,12 +138,33 @@ app.post('/category', function(req, res) {
   res.send(resObj);
 })
 
+
+
+
+
 /* 친구정보 가져오기, 친구 신청진행중 정보 포함
 */
-app.post('/friend', function(req, res) {
+app.post('/friendSearch', function(req, res) {
   var resObj = dbModule.selectRelation(req);
-  res.send(resObj)
+  res.send(resObj);
 })
+
+app.post('/friendAdd', function(req, res) {
+  var resObj = dbModule.insertRelation(req);
+  res.send(resObj);
+})
+
+app.post('/friendRequest', function(req, res) {
+  var resObj = dbModule.requestRelation(req);
+  res.send(resObj);
+})
+
+app.post('/friendAccept', function(req, res) {
+  var resObj = dbModule.acceptRelation(req);
+  res.send(resObj);
+})
+
+
 
 /* 채팅방 정보 넘겨주기
 */

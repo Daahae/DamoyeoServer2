@@ -151,7 +151,7 @@ module.exports.insertCategory = function(req) {
       }
     });
   }
-  while (!errorHandlingModule.isObjectData(resObj)) { // 비동기 처리
+  while (!errorHandlingModule.isObjectData(resObj)) {
     deasync.sleep(100);
   }
   return resObj;
@@ -238,7 +238,7 @@ module.exports.selectChatRoom = function(req) {
 }
 
 /* 친구관계 가저오기
-   /friend
+   /requestFriend
  */
 module.exports.selectRelation = function(req) {
   var reqObj = JSON.parse(req.body.friend);
@@ -246,7 +246,37 @@ module.exports.selectRelation = function(req) {
   var userObj = new Object();
   resObj.userArr = new Array();
 
-  var sql = "SELECT DISTINCT email, nickname, relation FROM user, relation where email in (select user2 from relation where user1 =? or user2 =?)";
+  var sql = "SELECT DISTINCT email, nickname, relation FROM user, relation where email in (select user2 from relation where user1 =?)";
+  conn.query(sql, [reqObj.email,reqObj.email], function(err, results, fields) {
+    if (err) {
+      console.log(err);
+    } else {
+      for (var i = 0; i < results.length; i++) {
+        var userObj = new Object();
+        userObj.email = results[i].email;
+        userObj.nickname = results[i].nickname;
+        userObj.relation = results[i].relation;
+        resObj.userArr.push(userObj);
+      }
+    }
+  });
+ while (!errorHandlingModule.isData(resObj.userArr)) { // 비동기 처리
+   deasync.sleep(100);
+ }
+
+  return resObj;
+}
+
+// 진행 중
+module.exports.acceptRelation = function(req) {
+  var reqObj = JSON.parse(req.body.friend);
+  var resObj = new Object();
+  var userObj = new Object();
+  var email = reqObj.email;
+  var accept = reqObj.accept; // 0,1
+  resObj.userArr = new Array();
+
+  var sql = "";
   conn.query(sql, [reqObj.email,reqObj.email], function(err, results, fields) {
     if (err) {
       console.log(err);
@@ -267,3 +297,4 @@ module.exports.selectRelation = function(req) {
 
   return resObj;
 }
+
