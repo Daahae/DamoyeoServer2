@@ -136,7 +136,6 @@ module.exports.insertCategory = function(req) {
   var resObj = new Object();
 
   for (var i = 0; i < reqArray.length; i++) {
-    // 반복문 돌면서 삽입
     var email = reqArray[i].email;
     var mostLike = reqArray[i].mostLike;
     var moreLike = reqArray[i].moreLike;
@@ -197,6 +196,7 @@ module.exports.selectDetailChatRoom = function(req) {
     }
   });
 
+  
   while (!errorHandlingModule.isData(resObj.userArr)) { // 비동기 처리
     deasync.sleep(100);
   }
@@ -209,31 +209,42 @@ module.exports.selectDetailChatRoom = function(req) {
  */
 module.exports.selectChatRoom = function(req) {
   var reqObj = JSON.parse(req.body.chatRoom);
-  var resArr = new Array();
+  var resObj = new Object();
+  resObj.roomArr = new Array();
+  //var email = "jong4876@naver.com";
   var email = reqObj.email;
+  var i;
   var sql = "SELECT * FROM chatroom WHERE user1 = ? or user2 = ? or user3 = ? or user4 = ? or user5 = ? or user6 = ?";
   conn.query(sql, [email,email,email,email,email,email], function(err, results, fields) {
     if (err) {
       console.log(err);
     } else {  
-      resArr = results;
-    }
-  })
-  while (!errorHandlingModule.isData(resArr)) { 
-    deasync.sleep(100);
+         resObj.roomArr = results;
+         var sql = "select * from user";
+         conn.query(sql,[email], function(err, users, fields) {
+          if (err) {
+            console.log(err);
+          } else {
+            resObj.userObj = users;
+          }
+        })
+       }
+    })
+  while (!errorHandlingModule.isData(resObj.roomArr)) { // 비동기 처리
+   deasync.sleep(200);
   }
-  return resArr;
+  console.log(resObj);
+  return resObj;
 }
 
 /* 친구관계 가저오기
-
+   /friend
  */
 module.exports.selectRelation = function(req) {
   var reqObj = JSON.parse(req.body.friend);
   var resObj = new Object();
   var userObj = new Object();
   resObj.userArr = new Array();
-  console.log(reqObj.email);
 
   var sql = "SELECT DISTINCT email, nickname, relation FROM user, relation where email in (select user2 from relation where user1 =? or user2 =?)";
   conn.query(sql, [reqObj.email,reqObj.email], function(err, results, fields) {
@@ -247,18 +258,12 @@ module.exports.selectRelation = function(req) {
         userObj.relation = results[i].relation;
         resObj.userArr.push(userObj);
       }
-      console.log(resObj);
+    
     }
   });
  while (!errorHandlingModule.isData(resObj.userArr)) { // 비동기 처리
    deasync.sleep(100);
  }
-  console.log(resObj);
-  return resObj;
-}
 
-/* chatRoom 인원 수 갱신
- */
-function square(number) {
-  return number * number;
+  return resObj;
 }

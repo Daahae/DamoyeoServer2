@@ -36,6 +36,7 @@ server.listen(3443);
 console.log("Connected 3443port!@!@!@");
 
 
+// 소켓함수 모듈로 변경 필요
 io.sockets.on('connection', function(socket) {
   var usernames = {};
   var rooms = ['room1', 'room2', 'room3'];
@@ -55,8 +56,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   /* 친구와 함께 방 생성
-
-  */
+   */
   socket.on('addUser', function(reqObj) {
     var reqObj = JSON.parse(reqObj);
     var emailList = emailList = reqObj.emailList.split(",");
@@ -152,8 +152,8 @@ app.post('/detailChatRoom', function(req, res) {
   res.send(resObj)
 })
 app.post('/chatRoom', function(req, res) {
-  var resObj = dbModule.selectChatRoom(req);
-  res.send(resObj)
+  var resObj= dbModule.selectChatRoom(req);
+  res.send(resObj);
 })
 
 
