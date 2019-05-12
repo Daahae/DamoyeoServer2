@@ -246,7 +246,7 @@ module.exports.selectRelation = function(req) {
   var userObj = new Object();
   resObj.userArr = new Array();
 
-  var sql = "SELECT DISTINCT email, nickname, relation FROM user, relation where email in (select user2 from relation where user1 =?)";
+  var sql = "SELECT DISTINCT email, nickname, relation FROM user, relation where email in (select user2 from relation where user1 =?) and user1 = ?";
   conn.query(sql, [reqObj.email,reqObj.email], function(err, results, fields) {
     if (err) {
       console.log(err);
