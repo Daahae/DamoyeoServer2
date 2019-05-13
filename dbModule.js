@@ -238,6 +238,11 @@ module.exports.selectChatRoom = function(req) {
   return resObj;
 }
 
+
+/*-------------------------------------------*/
+// 친구관리 메서드
+
+
 /* 친구의 이메일이 존재하는지 여부 판단
    /friendSearch
  */
@@ -247,18 +252,17 @@ module.exports.selectFriendEmail = function(req) {
   var userObj = new Object();
   resObj.userArr = new Array();
 
-  var sql = "SELECT DISTINCT email, nickname, relation FROM user, relation where email in (select user2 from relation where user1 =?) and user1 = ?";
-  conn.query(sql, [reqObj.email,reqObj.email], function(err, results, fields) {
+  var sql = "select * from user where email = ?";
+  conn.query(sql, [reqObj.email], function(err, results, fields) {
     if (err) {
       console.log(err);
     } else {
-      for (var i = 0; i < results.length; i++) {
-        var userObj = new Object();
-        userObj.email = results[i].email;
-        userObj.nickname = results[i].nickname;
-        userObj.relation = results[i].relation;
-        resObj.userArr.push(userObj);
+      if(results.length !=0){
+        resObj.userArr = results;
+        resObj.exist = 1;
       }
+      else
+        resObj.exist = 0;
     }
   });
  while (!errorHandlingModule.isData(resObj.userArr)) { // 비동기 처리
@@ -272,14 +276,15 @@ module.exports.selectFriendEmail = function(req) {
 /* 친구관계 가저오기
    /friendRequest
  */
-module.exports.selectRelation = function(req) {
+module.exports.requestRelation = function(req) {
   var reqObj = JSON.parse(req.body.friend);
   var resObj = new Object();
   var userObj = new Object();
-  resObj.userArr = new Array();
+  resObj.friendArr = new Array();
+  resObj.waitingFriendArr = new Array();
 
-  var sql = "SELECT DISTINCT email, nickname, relation FROM user, relation where email in (select user2 from relation where user1 =?) and user1 = ?";
-  conn.query(sql, [reqObj.email,reqObj.email], function(err, results, fields) {
+  var sql = "SELECT DISTINCT email, nickname FROM user, relation where email in (select user2 from relation where user1 = ? and relation = ?)";
+  conn.query(sql, [reqObj.email, 1], function(err, results, fields) {
     if (err) {
       console.log(err);
     } else {
@@ -287,14 +292,28 @@ module.exports.selectRelation = function(req) {
         var userObj = new Object();
         userObj.email = results[i].email;
         userObj.nickname = results[i].nickname;
-        userObj.relation = results[i].relation;
-        resObj.userArr.push(userObj);
+        resObj.friendArr.push(userObj);
       }
+      var sql = "SELECT DISTINCT email, nickname FROM user, relation where email in (select user2 from relation where user1 = ? and relation = ?)";
+      conn.query(sql, [reqObj.email, 0], function(err, results, fields) {
+        if (err) {
+          console.log(err);
+        } else {
+          for (var i = 0; i < results.length; i++) {
+            var userObj = new Object();
+            userObj.email = results[i].email;
+            userObj.nickname = results[i].nickname;
+            resObj.waitingFriendArr.push(userObj);
+          }
+        }
+      });
     }
   });
- while (!errorHandlingModule.isData(resObj.userArr)) { // 비동기 처리
+
+ while (!errorHandlingModule.isData(resObj.waitingFriendArr)) { // 비동기 처리
    deasync.sleep(100);
  }
+ console.log(resObj);
   return resObj;
 }
 
