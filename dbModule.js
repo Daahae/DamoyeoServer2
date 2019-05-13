@@ -197,7 +197,8 @@ module.exports.selectDetailChatRoom = function(req) {
   });
 
   
-  while (!errorHandlingModule.isData(resObj.userArr)) { // 비동기 처리
+  while (!errorHandlingModule.isData(resObj.userArr)) { 
+
     deasync.sleep(100);
   }
   console.log(resObj);
@@ -237,8 +238,39 @@ module.exports.selectChatRoom = function(req) {
   return resObj;
 }
 
+/* 친구의 이메일이 존재하는지 여부 판단
+   /friendSearch
+ */
+module.exports.selectFriendEmail = function(req) {
+  var reqObj = JSON.parse(req.body.friend);
+  var resObj = new Object();
+  var userObj = new Object();
+  resObj.userArr = new Array();
+
+  var sql = "SELECT DISTINCT email, nickname, relation FROM user, relation where email in (select user2 from relation where user1 =?) and user1 = ?";
+  conn.query(sql, [reqObj.email,reqObj.email], function(err, results, fields) {
+    if (err) {
+      console.log(err);
+    } else {
+      for (var i = 0; i < results.length; i++) {
+        var userObj = new Object();
+        userObj.email = results[i].email;
+        userObj.nickname = results[i].nickname;
+        userObj.relation = results[i].relation;
+        resObj.userArr.push(userObj);
+      }
+    }
+  });
+ while (!errorHandlingModule.isData(resObj.userArr)) { // 비동기 처리
+   deasync.sleep(100);
+ }
+  return resObj;
+}
+
+
+
 /* 친구관계 가저오기
-   /requestFriend
+   /friendRequest
  */
 module.exports.selectRelation = function(req) {
   var reqObj = JSON.parse(req.body.friend);
@@ -263,38 +295,75 @@ module.exports.selectRelation = function(req) {
  while (!errorHandlingModule.isData(resObj.userArr)) { // 비동기 처리
    deasync.sleep(100);
  }
-
   return resObj;
 }
 
-// 진행 중
+/* 친구 요청
+   보낸 사용자 받은 사용자 둘다 relation 0 으로 추가
+   /friendAdd
+ */
+module.exports.insertRelation = function(req) {
+  var reqObj = JSON.parse(req.body.friend);
+  var resObj = new Object();
+  var userObj = new Object();
+  var myEmail = reqObj.myEmail;
+  var destEmail = reqObj.destEmail;
+
+  var sql = "INSERT INTO relation(`user1`, `user2`, `relation`) VALUES ( ?, ?, ?) ";
+  conn.query(sql, [myEmail, destEmail, 0], function(err, results, fields) {
+    if (err) {
+      console.log(err);
+      resObj.msg = 0;
+    } else {
+      conn.query(sql, [destEmail, myEmail,0], function(err, results, fields) {
+        if (err) {
+          console.log(err);
+          resObj.msg = 0;
+        } else {
+          console.log("Success at adding friend!");
+          resObj.msg = 1;
+        }
+      });
+    }
+  });
+ while (!errorHandlingModule.isObjectData(resObj)) { // 비동기 처리
+   deasync.sleep(100);
+ }
+  return resObj;
+}
+
+
+/* 친구 요청 수용
+   보낸 사용자 받은 사용자 둘다 relation 1 으로 변경
+   /friendAccept
+ */
 module.exports.acceptRelation = function(req) {
   var reqObj = JSON.parse(req.body.friend);
   var resObj = new Object();
   var userObj = new Object();
-  var email = reqObj.email;
-  var accept = reqObj.accept; // 0,1
-  resObj.userArr = new Array();
+  var myEmail = reqObj.myEmail;
+  var destEmail = reqObj.destEmail;
 
-  var sql = "";
-  conn.query(sql, [reqObj.email,reqObj.email], function(err, results, fields) {
+  var sql = "UPDATE relation SET relation = 1 WHERE user1 = ? and user2 = ?";
+  conn.query(sql, [myEmail, destEmail], function(err, results, fields) {
     if (err) {
       console.log(err);
+      resObj.msg = 0;
     } else {
-      for (var i = 0; i < results.length; i++) {
-        var userObj = new Object();
-        userObj.email = results[i].email;
-        userObj.nickname = results[i].nickname;
-        userObj.relation = results[i].relation;
-        resObj.userArr.push(userObj);
-      }
-    
+      conn.query(sql, [destEmail, myEmail], function(err, results, fields) {
+        if (err) {
+          console.log(err);
+          resObj.msg = 0;
+        } else {
+          console.log("Success at update friend!");
+          resObj.msg = 1;
+        }
+      });
     }
   });
- while (!errorHandlingModule.isData(resObj.userArr)) { // 비동기 처리
+ while (!errorHandlingModule.isObjectData(resObj)) { // 비동기 처리
    deasync.sleep(100);
  }
-
   return resObj;
 }
 

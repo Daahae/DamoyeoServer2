@@ -145,7 +145,7 @@ app.post('/category', function(req, res) {
 /* 친구정보 가져오기, 친구 신청진행중 정보 포함
 */
 app.post('/friendSearch', function(req, res) {
-  var resObj = dbModule.selectRelation(req);
+  var resObj = dbModule.selectFriendEmail(req);
   res.send(resObj);
 })
 
