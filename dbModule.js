@@ -1,3 +1,5 @@
+
+    
 var mysql = require('mysql');
 var errorHandlingModule = require('./errorHandlingModule.js');
 var deasync = require('deasync');
@@ -198,7 +200,7 @@ module.exports.selectDetailChatRoom = function(req) {
 
   
   while (!errorHandlingModule.isData(resObj.userArr)) { 
-
+    console.log("selectDetailChatRoom 에러");
     deasync.sleep(100);
   }
   console.log(resObj);
@@ -232,6 +234,7 @@ module.exports.selectChatRoom = function(req) {
        }
     })
   while (!errorHandlingModule.isData(resObj.roomArr)) { // 비동기 처리
+    console.log("selectChatRoom 에러");
    deasync.sleep(200);
   }
   console.log(resObj);
@@ -266,24 +269,25 @@ module.exports.selectFriendEmail = function(req) {
     }
   });
  while (!errorHandlingModule.isData(resObj.userArr)) { // 비동기 처리
-   deasync.sleep(100);
+  console.log("selectFriendEmail 에러");
+  deasync.sleep(100);
  }
   return resObj;
 }
 
 
 
-/* 친구관계 가저오기
+/* 친구관계 가저오기 씨발 그냥 새로 만들기 친구 요청 확인용으로
    /friendRequest
  */
-module.exports.requestRelation = function(req) {
+module.exports.requestRelation = function(req,res) {
   var reqObj = JSON.parse(req.body.friend);
   var resObj = new Object();
   var userObj = new Object();
   resObj.friendArr = new Array();
   resObj.waitingFriendArr = new Array();
 
-  var sql = "SELECT DISTINCT email, nickname FROM user, relation where email in (select user2 from relation where user1 = ? and relation = ?)";
+  var sql = "SELECT DISTINCT email, nickname FROM user, relation where email in (select user1 from relation where user2 = ? and relation = ?)";
   conn.query(sql, [reqObj.email, 1], function(err, results, fields) {
     if (err) {
       console.log(err);
@@ -294,7 +298,7 @@ module.exports.requestRelation = function(req) {
         userObj.nickname = results[i].nickname;
         resObj.friendArr.push(userObj);
       }
-      var sql = "SELECT DISTINCT email, nickname FROM user, relation where email in (select user2 from relation where user1 = ? and relation = ?)";
+      var sql = "SELECT DISTINCT email, nickname FROM user, relation where email in (select user1 from relation where user2 = ? and relation = ?)";
       conn.query(sql, [reqObj.email, 0], function(err, results, fields) {
         if (err) {
           console.log(err);
@@ -306,15 +310,17 @@ module.exports.requestRelation = function(req) {
             resObj.waitingFriendArr.push(userObj);
           }
         }
+        console.log(resObj);
+        res.send(resObj);
       });
     }
   });
-
+/*
  while (!errorHandlingModule.isData(resObj.waitingFriendArr)) { // 비동기 처리
-   deasync.sleep(100);
+  console.log("requestRelation 에러");
+  deasync.sleep(100);
  }
- console.log(resObj);
-  return resObj;
+ */
 }
 
 /* 친구 요청
@@ -328,26 +334,19 @@ module.exports.insertRelation = function(req) {
   var myEmail = reqObj.myEmail;
   var destEmail = reqObj.destEmail;
 
-  var sql = "INSERT INTO relation(`user1`, `user2`, `relation`) VALUES ( ?, ?, ?) ";
+  var sql = "INSERT INTO relation(user1, user2, relation) VALUES ( ?, ?, ?) ";
   conn.query(sql, [myEmail, destEmail, 0], function(err, results, fields) {
     if (err) {
       console.log(err);
       resObj.msg = 0;
     } else {
-      conn.query(sql, [destEmail, myEmail,0], function(err, results, fields) {
-        if (err) {
-          console.log(err);
-          resObj.msg = 0;
-        } else {
-          console.log("Success at adding friend!");
-          resObj.msg = 1;
-        }
-      });
+      resObj.msg = 1;
     }
   });
  while (!errorHandlingModule.isObjectData(resObj)) { // 비동기 처리
    deasync.sleep(100);
  }
+  console.log(resObj);
   return resObj;
 }
 
@@ -362,27 +361,46 @@ module.exports.acceptRelation = function(req) {
   var userObj = new Object();
   var myEmail = reqObj.myEmail;
   var destEmail = reqObj.destEmail;
+  var accept = reqObj.accept;
+  console.log(reqObj);
 
-  var sql = "UPDATE relation SET relation = 1 WHERE user1 = ? and user2 = ?";
-  conn.query(sql, [myEmail, destEmail], function(err, results, fields) {
-    if (err) {
-      console.log(err);
-      resObj.msg = 0;
-    } else {
-      conn.query(sql, [destEmail, myEmail], function(err, results, fields) {
-        if (err) {
-          console.log(err);
-          resObj.msg = 0;
-        } else {
-          console.log("Success at update friend!");
-          resObj.msg = 1;
-        }
-      });
-    }
-  });
- while (!errorHandlingModule.isObjectData(resObj)) { // 비동기 처리
-   deasync.sleep(100);
- }
-  return resObj;
+  if(accept == 1){
+   var sql = "UPDATE relation SET relation = 1 WHERE user1 = ? and user2 = ? and relation = 0";
+    conn.query(sql, [destEmail, myEmail], function(err, results, fields) {
+      if (err) {
+        console.log("update Err");
+        resObj.msg = 0;
+      } else {
+        var sql = "INSERT INTO relation(user1, user2, relation) VALUES ( ?, ?, ?)"; 
+        conn.query(sql, [myEmail, destEmail, 1], function(err, results, fields) {
+          if (err) {
+            console.log("insert Err");
+            console.log(err);
+            resObj.msg = 0;
+          } else {
+            console.log("Success at accept friend!");
+            resObj.msg = 1;
+          }
+        });
+      }
+    });
+  }
+  else{
+    var sql = "DELETE FROM relation WHERE user1 = ? and user2 = ? and relation = 0"; 
+    conn.query(sql, [destEmail, myEmail], function(err, results, fields) {
+      if (err) {
+        console.log(err);
+        resObj.msg = 0;
+      } else {
+        console.log("Success at delete friend!");
+        resObj.msg = 1;
+      }
+    });
+  }
+
+  while (!errorHandlingModule.isObjectData(resObj)) { // 비동기 처리
+    deasync.sleep(100);
+  }
+  console.log(resObj);
+   return resObj;
 }
-

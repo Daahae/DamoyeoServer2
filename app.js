@@ -1,3 +1,4 @@
+
 var express = require('express'),
   app = express(),
   http = require('http'),
@@ -58,8 +59,9 @@ io.sockets.on('connection', function(socket) {
   /* 친구와 함께 방 생성
    */
   socket.on('addUser', function(reqObj) {
+    //console.log(reqObj);
     var reqObj = JSON.parse(reqObj);
-    var emailList = emailList = reqObj.emailList.split(",");
+    var emailList = reqObj.emailList.split(",");
     socket.room = reqObj.room;
     socket.join(socket.room);
     socket.emit('updateChat', 'you have connected to ' + socket.room);
@@ -155,8 +157,8 @@ app.post('/friendAdd', function(req, res) {
 })
 
 app.post('/friendRequest', function(req, res) {
-  var resObj = dbModule.requestRelation(req);
-  res.send(resObj);
+  var resObj = dbModule.requestRelation(req,res);
+  //res.send(resObj);
 })
 
 app.post('/friendAccept', function(req, res) {
@@ -242,7 +244,6 @@ socket.on('sendchat', function(data) {
   // we tell the client to execute 'updatechat' with 2 parameters
   io.sockets.in(socket.room).emit('updatechat', socket.username, data);
 });
-
 socket.on('switchRoom', function(newroom) {
   socket.leave(socket.room);
   socket.join(newroom);
@@ -254,8 +255,6 @@ socket.on('switchRoom', function(newroom) {
   socket.broadcast.to(newroom).emit('updatechat', 'SERVER', socket.username + ' has joined this room');
   socket.emit('updaterooms', rooms, newroom);
 });
-
-
 // when the user disconnects.. perform this
 socket.on('disconnect', function() {
   // remove the username from global usernames list
@@ -267,3 +266,4 @@ socket.on('disconnect', function() {
   socket.leave(socket.room);
 });
 */
+
