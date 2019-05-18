@@ -13,13 +13,13 @@
 	});
 
 	// 서버가 udatechat 을 emit 할시 서버의 body에 추가
-	socket.on('updatechat', function (username, data) {
+	socket.on('updateChat', function (username, data) {
 		$('#conversation').append('<b>'+username + ':</b> ' + data + '<br>');
 		// $는 제이쿼리에접근가능한 식별자
 	});
 
 	// listener, 서버가 updaterooms 호출 시
-	socket.on('updaterooms', function(rooms, current_room) {
+	socket.on('updateRooms', function(rooms, current_room) {
 		$('#rooms').empty();
 		$.each(rooms, function(key, value) {
 			if(value == current_room){

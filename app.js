@@ -1,4 +1,3 @@
-
 var express = require('express'),
   app = express(),
   http = require('http'),
@@ -22,8 +21,6 @@ var deasync = require('deasync');
 var midInfo = new Array(37.5637399, 126.9838655);
 
 
-
-
 app.set('views', __dirname + '/view');
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html'); //default엔진을 html로
@@ -37,15 +34,15 @@ server.listen(3443);
 console.log("Connected 3443port!@!@!@");
 
 
+
 // 소켓함수 모듈로 변경 필요
 io.sockets.on('connection', function(socket) {
   var usernames = {};
-  var rooms = ['room1', 'room2', 'room3'];
+  var rooms = [1, 2, 3];
   console.log('Socket ID : ' + socket.id + ', Connect');
 
   /* email 받아서 어느방에 권한이 있는지 수정
    */
-
   socket.on('clientMessage', function(currentUser) {
     console.log('CurrentUser : ' + currentUser);
     socket.currentUser = currentUser; // 소켓 세션에 현재 접속 유저 등록
@@ -59,7 +56,7 @@ io.sockets.on('connection', function(socket) {
   /* 친구와 함께 방 생성
    */
   socket.on('addUser', function(reqObj) {
-    //console.log(reqObj);
+    console.log(reqObj);
     var reqObj = JSON.parse(reqObj);
     var emailList = reqObj.emailList.split(",");
     socket.room = reqObj.room;
@@ -75,9 +72,41 @@ io.sockets.on('connection', function(socket) {
     // 그룹 전체
 
     //socket.broadcast.to(socket.room).emit('updateChat', '[broadcast] '+emailList + ' has connected to this room');
-    //socket.emit('updateRooms', rooms, 'room1');
+    socket.emit('updateRooms', rooms, 1);
   });
+  
+
+  socket.on('sendchat', function(data) {
+    // we tell the client to execute 'updatechat' with 2 parameters
+    io.sockets.in(socket.room).emit('updatechat', socket.username, data);
+  });
+
+  socket.on('switchRoom', function(newroom) {
+    socket.leave(socket.room);
+    socket.join(newroom);
+    socket.emit('updatechat', 'SERVER', 'you have connected to ' + newroom);
+    // sent message to OLD room
+    socket.broadcast.to(socket.room).emit('updatechat', 'SERVER', socket.username + ' has left this room');
+    // update socket session room title
+    socket.room = newroom;
+    socket.broadcast.to(newroom).emit('updatechat', 'SERVER', socket.username + ' has joined this room');
+    socket.emit('updaterooms', rooms, newroom);
+  });
+
+  // when the user disconnects.. perform this
+  socket.on('disconnect', function() {
+    // remove the username from global usernames list
+    delete usernames[socket.username];
+    // update list of users in chat, client-side
+    io.sockets.emit('updateusers', usernames);
+    // echo globally that this client has left
+    socket.broadcast.emit('updatechat', 'SERVER', socket.username + ' has disconnected');
+    socket.leave(socket.room);
+  });
+
+
 });
+
 
 // 소켓 함수
 /*-------------------------------------------------------------------------------*/
