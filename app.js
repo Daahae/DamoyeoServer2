@@ -39,6 +39,7 @@ console.log("Connected 3443port!@!@!@");
 io.sockets.on('connection', function(socket) {
   var usernames = {};
   var rooms = [1, 2, 3];
+  var message = new Object();
   console.log('Socket ID : ' + socket.id + ', Connect');
 
   /* email 받아서 어느방에 권한이 있는지 수정
@@ -46,10 +47,8 @@ io.sockets.on('connection', function(socket) {
   socket.on('clientMessage', function(currentUser) {
     console.log('CurrentUser : ' + currentUser);
     socket.currentUser = currentUser; // 소켓 세션에 현재 접속 유저 등록
-    var message = {
-      msg: 'current user is',
-      data: currentUser
-    };
+    message.msg = 'current user is';
+    message.data = currentUser;
     socket.emit('serverMessage', message);
   });
 
@@ -61,25 +60,32 @@ io.sockets.on('connection', function(socket) {
     var emailList = reqObj.emailList.split(",");
     socket.room = reqObj.room;
     socket.join(socket.room);
-    socket.emit('updateChat', 'you have connected to ' + socket.room);
+    message.user = 'you';
+    message.data = 'have connected to ' + socket.room;
+    socket.emit('updateChat', message);
 
     for (var i = 0; i < emailList.length; i++) {
       console.log(emailList[i]);
       dbModule.insertUsersToChatRoom(emailList.length, emailList[i], socket.room, i + 1); 
       // 디비에 사용자 기록
     }
-    io.to(socket.room).emit('updateChat','[broadcast]'+emailList + ' has connected to this room');
+    message.user = '[broadcast]';
+    message.data = emailList + ' has connected to this room';
+    io.to(socket.room).emit('updateChat',message);
     // 그룹 전체
-
-    //socket.broadcast.to(socket.room).emit('updateChat', '[broadcast] '+emailList + ' has connected to this room');
-    socket.emit('updateRooms', rooms, 1);
   });
   
 
-  socket.on('sendchat', function(data) {
+  socket.on('sendChat', function(data) {
     // we tell the client to execute 'updatechat' with 2 parameters
-    io.sockets.in(socket.room).emit('updatechat', socket.username, data);
+    message.user = socket.currentUser;
+    message.data = data;
+    console.log(data);
+    io.sockets.in(socket.room).emit('updateChat', message);
   });
+
+
+
 
   socket.on('switchRoom', function(newroom) {
     socket.leave(socket.room);
