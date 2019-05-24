@@ -19,7 +19,10 @@ var mysql = require('mysql');
 var errorHandlingModule = require('./errorHandlingModule.js');
 var deasync = require('deasync');
 var midInfo = new Array(37.5637399, 126.9838655);
-
+var moment = require('moment');
+require('moment-timezone');
+moment.tz.setDefault("Asia/Seoul");
+var date = moment().format('YYYY-MM-DD HH:mm:ss');
 
 app.set('views', __dirname + '/view');
 app.engine('html', require('ejs').renderFile);
@@ -32,7 +35,7 @@ app.use(express.static('public'));
 
 server.listen(3443);
 console.log("Connected 3443port!@!@!@");
-
+console.log(date);  
 
 
 // 소켓함수 모듈로 변경 필요
@@ -47,6 +50,9 @@ io.sockets.on('connection', function(socket) {
   socket.on('clientMessage', function(currentUser) {
     console.log('CurrentUser : ' + currentUser);
     socket.currentUser = currentUser; // 소켓 세션에 현재 접속 유저 등록
+    socket.currentNickname = dbModule.selectFriendEmailbySocket(currentUser);
+    console.log(socket.currentNickname );
+
     message.msg = 'current user is';
     message.data = currentUser;
     socket.emit('serverMessage', message);
@@ -55,7 +61,6 @@ io.sockets.on('connection', function(socket) {
   /* 친구와 함께 방 생성
    */
   socket.on('addUser', function(reqObj) {
-    console.log(reqObj);
     var reqObj = JSON.parse(reqObj);
     var emailList = reqObj.emailList.split(",");
     socket.room = reqObj.room;
@@ -65,48 +70,70 @@ io.sockets.on('connection', function(socket) {
     socket.emit('updateChat', message);
 
     for (var i = 0; i < emailList.length; i++) {
-      console.log(emailList[i]);
       dbModule.insertUsersToChatRoom(emailList.length, emailList[i], socket.room, i + 1); 
       // 디비에 사용자 기록
     }
+
     message.user = '[broadcast]';
     message.data = emailList + ' has connected to this room';
     io.to(socket.room).emit('updateChat',message);
     // 그룹 전체
   });
   
-
+  // 채팅 저장, 메시지 브로드캐스트
   socket.on('sendChat', function(data) {
     // we tell the client to execute 'updatechat' with 2 parameters
-    message.user = socket.currentUser;
+    
+    message.user = socket.currentNickname;
     message.data = data;
-    console.log(data);
+    var time = moment().format('YYYY-MM-DD HH:mm:ss');
+    var roomNum = socket.room;
+    console.log(roomNum);
+    dbModule.insertMsgToChatMsg(message,roomNum, time);
     io.sockets.in(socket.room).emit('updateChat', message);
   });
 
 
 
-
   socket.on('switchRoom', function(newroom) {
+    var oldroom = socket.room;
     socket.leave(socket.room);
     socket.join(newroom);
-    socket.emit('updatechat', 'SERVER', 'you have connected to ' + newroom);
-    // sent message to OLD room
-    socket.broadcast.to(socket.room).emit('updatechat', 'SERVER', socket.username + ' has left this room');
+
+    message.user = '[broadcast]';
+    message.data = socket.username + ' has left this room';
+    socket.broadcast.to(oldroom).emit('updatechat', message);
     // update socket session room title
+
     socket.room = newroom;
-    socket.broadcast.to(newroom).emit('updatechat', 'SERVER', socket.username + ' has joined this room');
-    socket.emit('updaterooms', rooms, newroom);
+    message.user = 'you';
+    message.data = 'have connected to ' + socket.room;
+    socket.emit('updateChat', message);
+    // sent message to me
+
+    message.user = '[broadcast]';
+    message.data = socket.username + ' has joined this room';
+    socket.broadcast.to(newroom).emit('updatechat',message); //  개인에게 방송?
+    // socket.emit('updaterooms', rooms, newroom);
+
+    message.user = 'msg';
+    console.log(socket.room);
+    message.data = dbModule.selectMsgFromChatMsg(socket.room);
+    socket.emit('updateChat', message);
   });
+
 
   // when the user disconnects.. perform this
   socket.on('disconnect', function() {
     // remove the username from global usernames list
     delete usernames[socket.username];
     // update list of users in chat, client-side
-    io.sockets.emit('updateusers', usernames);
-    // echo globally that this client has left
-    socket.broadcast.emit('updatechat', 'SERVER', socket.username + ' has disconnected');
+
+    // echo globally that this client has left?
+
+    message.user = '[broadcast]';
+    message.data = socket.username + ' has disconnected';
+    socket.broadcast.emit('updatechat', message);
     socket.leave(socket.room);
   });
 

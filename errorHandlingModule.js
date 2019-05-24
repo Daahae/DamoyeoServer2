@@ -1,3 +1,4 @@
+var deasync = require('deasync');
 /* 에러처리
    변수의 데이터 존재확인
  */

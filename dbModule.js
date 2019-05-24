@@ -41,7 +41,13 @@ module.exports.insertUserLoginInfo = function(req) {
   return resObj;
 }
 
-/* 친구 계정과 함께 방 생성
+
+
+
+// 로그인 관련
+/* -------------------------------------------------------------- */
+
+/* 친구 계정과 함께 방 생성 (update)
    디비에 사용자 기록
    소켓함수 addUser
 */
@@ -54,9 +60,45 @@ module.exports.insertUsersToChatRoom = function(count,user,room, i) {
       console.log("채팅방 삽입 완료");
   });
 }
+module.exports.insertMsgToChatMsg = function(message, roomNum, time) {
+  var sql = "INSERT INTO chatmsg (roomNum, userNickName, msg, sendTime) VALUES (?, ?, ?, ?)";
+  conn.query(sql, [roomNum, message.user, message.data, time], function(err, results, fields) {
+    if (err){
+      console.log("메시지 삽입 에러");
+      console.log(err);
+    }
+    else
+      console.log("메시지 삽입 완료");
+  });
+}
+
+module.exports.selectMsgFromChatMsg = function(roomNum) { // 메시지 최근순으로 가져오기
+  var message = new Object();
+  var sql = "SELECT * FROM `chatmsg` WHERE roomNum = ? order by sendTime";
+  conn.query(sql, [roomNum], function(err, results, fields) {
+    if (err)
+      console.log("메시지 가져오기 에러");
+    else{
+      console.log("메시지 가져오기 완료");
+      message = results;
+      if(results.length == 0)
+        message = "no data";
+
+    }
+  });
+
+  while (!errorHandlingModule.isObjectData(message)) { // 비동기 처리
+    deasync.sleep(100);
+  }
+  return message;
+}
 
 
-/* --------------------------------------------------------------지도 관련 */
+
+// 소켓 함수 관련
+/* -------------------------------------------------------------- */
+// 지도 관련
+
 /* mapview에서의 동기화를 위한 업데이트 메서드
   결과값으로 타인의 좌표와 같이 전송 **
   입력값이 없을 땐 -1
@@ -165,12 +207,12 @@ module.exports.insertCategory = function(req) {
    /detailChatRoom
 */
 module.exports.selectDetailChatRoom = function(req) {
+  console.log(req.body);
   var reqObj = JSON.parse(req.body.chatRoom);
   var resObj = new Object();
   resObj.userArr = new Array();
   var email = reqObj.email;
   var roomNum = parseInt(reqObj.roomNumber);
-  console.log("roomNum : " + roomNum);
 
   // 방 입장시 증가
   var sql = "SELECT * FROM chatroom WHERE roomNum = ?";
@@ -214,7 +256,6 @@ module.exports.selectChatRoom = function(req) {
   var reqObj = JSON.parse(req.body.chatRoom);
   var resObj = new Object();
   resObj.roomArr = new Array();
-  //var email = "jong4876@naver.com";
   var email = reqObj.email;
   var i;
   var sql = "SELECT * FROM chatroom WHERE user1 = ? or user2 = ? or user3 = ? or user4 = ? or user5 = ? or user6 = ?";
@@ -235,7 +276,7 @@ module.exports.selectChatRoom = function(req) {
     })
   while (!errorHandlingModule.isData(resObj.roomArr)) { // 비동기 처리
     console.log("selectChatRoom 에러");
-   deasync.sleep(200);
+   deasync.sleep(100);
   }
   console.log(resObj);
   return resObj;
@@ -245,6 +286,21 @@ module.exports.selectChatRoom = function(req) {
 /*-------------------------------------------*/
 // 친구관리 메서드
 
+module.exports.selectFriendEmailbySocket = function(email) {
+  var nickname = null;
+  var sql = "select * from user where email = ?";
+  conn.query(sql, [email], function(err, results, fields) {
+    if (err) {
+      console.log(err);
+    } else {
+      nickname = results[0].nickname;
+    }
+  });
+ while (nickname == null) { // 비동기 처리
+  deasync.sleep(100);
+ }
+  return nickname;
+}
 
 /* 친구의 이메일이 존재하는지 여부 판단
    /friendSearch
@@ -255,7 +311,7 @@ module.exports.selectFriendEmail = function(req) {
   var userObj = new Object();
   resObj.userArr = new Array();
 
-  var sql = "select * from user where email = ?";
+  var sql = "select nickname from user where email = ?";
   conn.query(sql, [reqObj.email], function(err, results, fields) {
     if (err) {
       console.log(err);
@@ -263,9 +319,11 @@ module.exports.selectFriendEmail = function(req) {
       if(results.length !=0){
         resObj.userArr = results;
         resObj.exist = 1;
+        resObj.nickname = results[0].nickname;
       }
       else
         resObj.exist = 0;
+        resObj.nickname = null;
     }
   });
  while (!errorHandlingModule.isData(resObj.userArr)) { // 비동기 처리
@@ -277,7 +335,7 @@ module.exports.selectFriendEmail = function(req) {
 
 
 
-/* 친구관계 가저오기 씨발 그냥 새로 만들기 친구 요청 확인용으로
+/* 친구관계 가저오기
    /friendRequest
  */
 module.exports.requestRelation = function(req,res) {
@@ -315,12 +373,6 @@ module.exports.requestRelation = function(req,res) {
       });
     }
   });
-/*
- while (!errorHandlingModule.isData(resObj.waitingFriendArr)) { // 비동기 처리
-  console.log("requestRelation 에러");
-  deasync.sleep(100);
- }
- */
 }
 
 /* 친구 요청
