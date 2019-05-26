@@ -15,9 +15,6 @@ var usersToMidModule = require('./transportLib/usersToMidModule.js');
 var transportJsonParseModule = require('./transportLib/transportJsonParseModule.js');
 var nearBySearchModule = require('./nearBySearchLib/NearbySearch.js');
 var nearBySearchDetailModule = require('./nearBySearchLib/GetDetailInfo.js');
-var mysql = require('mysql');
-var errorHandlingModule = require('./errorHandlingModule.js');
-var deasync = require('deasync');
 var midInfo = new Array(37.5637399, 126.9838655);
 var moment = require('moment');
 require('moment-timezone');
@@ -130,7 +127,6 @@ io.sockets.on('connection', function(socket) {
     // update list of users in chat, client-side
 
     // echo globally that this client has left?
-
     message.user = '[broadcast]';
     message.data = socket.username + ' has disconnected';
     socket.broadcast.emit('updatechat', message);
@@ -202,8 +198,15 @@ app.post('/category', function(req, res) {
   res.send(resObj);
 })
 
+app.post('/scheduleResult', function(req, res) {
+  dbModule.selectSchedule(req,res);
 
+})
 
+app.post('/detailScheduleResult', function(req, res) {
+  var resObj = dbModule.selectDetailSchedule(req);
+  res.send(resObj);
+})
 
 
 /* 친구정보 가져오기, 친구 신청진행중 정보 포함
@@ -219,8 +222,7 @@ app.post('/friendAdd', function(req, res) {
 })
 
 app.post('/friendRequest', function(req, res) {
-  var resObj = dbModule.requestRelation(req,res);
-  //res.send(resObj);
+  dbModule.requestRelation(req,res);
 })
 
 app.post('/friendAccept', function(req, res) {
@@ -298,34 +300,3 @@ app.post('/midDetailCategory', function(req, res) {
   var midDetailCategoryObject = nearBySearchDetailModule.getDetailInfo(req);
   res.send(midDetailCategoryObject);
 })
-
-
-/*
-// when the client emits 'sendchat', this listens and executes
-socket.on('sendchat', function(data) {
-  // we tell the client to execute 'updatechat' with 2 parameters
-  io.sockets.in(socket.room).emit('updatechat', socket.username, data);
-});
-socket.on('switchRoom', function(newroom) {
-  socket.leave(socket.room);
-  socket.join(newroom);
-  socket.emit('updatechat', 'SERVER', 'you have connected to ' + newroom);
-  // sent message to OLD room
-  socket.broadcast.to(socket.room).emit('updatechat', 'SERVER', socket.username + ' has left this room');
-  // update socket session room title
-  socket.room = newroom;
-  socket.broadcast.to(newroom).emit('updatechat', 'SERVER', socket.username + ' has joined this room');
-  socket.emit('updaterooms', rooms, newroom);
-});
-// when the user disconnects.. perform this
-socket.on('disconnect', function() {
-  // remove the username from global usernames list
-  delete usernames[socket.username];
-  // update list of users in chat, client-side
-  io.sockets.emit('updateusers', usernames);
-  // echo globally that this client has left
-  socket.broadcast.emit('updatechat', 'SERVER', socket.username + ' has disconnected');
-  socket.leave(socket.room);
-});
-*/
-

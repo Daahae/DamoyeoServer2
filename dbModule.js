@@ -64,6 +64,7 @@ module.exports.insertMsgToChatMsg = function(message, roomNum, time) {
   var sql = "INSERT INTO chatmsg (roomNum, userNickName, msg, sendTime) VALUES (?, ?, ?, ?)";
   conn.query(sql, [roomNum, message.user, message.data, time], function(err, results, fields) {
     if (err){
+
       console.log("메시지 삽입 에러");
       console.log(err);
     }
@@ -176,7 +177,7 @@ module.exports.initUserPosInfo = function(req) {
 */
 module.exports.insertCategory = function(req) {
   var reqArray = JSON.parse(req.body.categoryInfoArr);
-  //var reqArray = req.body.categoryInfoArr; // 테스트용
+
   var resObj = new Object();
 
   for (var i = 0; i < reqArray.length; i++) {
@@ -200,6 +201,45 @@ module.exports.insertCategory = function(req) {
   }
   return resObj;
 }
+
+/*-----------------------------------------------------------------*/
+//스케줄링 메서드
+module.exports.selectSchedule = function(req,res) {
+  var reqArray = JSON.parse(req.body.schedule);
+  var roomNum =reqArray.roomNum;
+  var resObj = new Object();
+  var sql = "SELECT * FROM chatroom where roomNum = ?";
+  conn.query(sql, [roomNum], function(err, results, fields) {
+    if (err) {
+      console.log(err);
+    } else {  
+         resObj.memberCount = results[0].count; // 방의 멤버 수
+         var user1 = results[0].user1;
+         var user2 = results[0].user2;
+         var user3 = results[0].user3;
+         var user4 = results[0].user4;
+         var user5 = results[0].user5;
+         var user6 = results[0].user6;
+
+         var sql = "select * from interestcategory where email = ? or  email = ? or email = ? or email = ? or email = ? or email = ?";
+         conn.query(sql,[user1, user2, user3, user4,user5, user6], function(err, category, fields) {
+          if (err) {
+            console.log(err);
+          } else {
+            resObj.category = category;
+            res.send(resObj);
+          }
+        })
+       }
+    })
+}
+
+
+
+
+
+
+
 
 /* 방번호를 받아 해당하는 채팅방의 정보 리턴
    중간지점 이미 찾았는지 리턴
