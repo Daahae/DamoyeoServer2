@@ -242,12 +242,10 @@ function scheduleAlg(categoryObj) {
       idx = mostLike%200;
       reqArr[idx] += 3; // 가중치 3
     }
-
     else if(mostLike/100 < 4){ // 놀거리
       idx = mostLike%300+4;
       reqArr[idx] += 3; 
     }
-
     else if(mostLike/100 >= 5 && mostLike/100 < 6){ // 술집
       idx = mostLike%500+11;
       reqArr[idx] += 3; 
@@ -259,12 +257,10 @@ function scheduleAlg(categoryObj) {
       idx = moreLike%200;
       reqArr[idx] += 2;
     }
-
     else if(moreLike/100 < 4){ 
       idx = moreLike%300+4;
       reqArr[idx] += 2; 
     }
-
     else if(moreLike/100 >= 5 && moreLike/100 < 6){
       idx = moreLike%500+11;
       reqArr[idx] += 2; 
@@ -276,12 +272,10 @@ function scheduleAlg(categoryObj) {
       idx = normalLike%200;
       reqArr[idx] += 1; 
     }
-
     else if(normalLike/100 < 4){
       idx = normalLike%300+4;
       reqArr[idx] += 1; 
     }
-
     else if(normalLike/100 >= 5 && normalLike/100 < 6){ 
       idx = normalLike%500+11;
       reqArr[idx] += 1; 
