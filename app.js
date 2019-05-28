@@ -66,6 +66,8 @@ io.sockets.on('connection', function(socket) {
     message.data = 'have connected to ' + socket.room;
     socket.emit('updateChat', message);
 
+
+    dbModule.resetChatRoom(socket.room); 
     for (var i = 0; i < emailList.length; i++) {
       dbModule.insertUsersToChatRoom(emailList.length, emailList[i], socket.room, i + 1); 
       // 디비에 사용자 기록

@@ -47,12 +47,25 @@ module.exports.insertUserLoginInfo = function(req) {
 // 로그인 관련
 /* -------------------------------------------------------------- */
 
-/* 친구 계정과 함께 방 생성 (update)
+
+// 채팅방 수정 후 초기화
+module.exports.resetChatRoom = function(room) {
+  var sql = "UPDATE `chatroom` SET `user1`=NULL,`user2`=NULL,`user3`=NULL,`user4`=NULL, `user5`=NULL,`user6`=NULL WHERE roomNum = ?";
+  conn.query(sql, [room], function(err, results, fields) {
+    if (err)
+      console.log("채팅방 초기화 에러");
+    else
+      console.log("채팅방 초기화 완료");
+  });
+}
+
+
+/* 친구 계정과 함께 채팅방 생성 (update)
    디비에 사용자 기록
    소켓함수 addUser
 */
 module.exports.insertUsersToChatRoom = function(count,user,room, i) {
-  var sql = "UPDATE chatroom SET `count` = ?, user"+i+" =? WHERE roomNum = ?";
+  var sql = "UPDATE chatroom SET `count` = ?, midFlag = 0 ,user"+i+" =? WHERE roomNum = ?";
   conn.query(sql, [count, user,room], function(err, results, fields) {
     if (err)
       console.log("채팅방 삽입 에러");
@@ -192,7 +205,7 @@ module.exports.insertCategory = function(req) {
         console.log(err);
         resObj.msg = "Category insert fail";
       } else {
-        resObj.msg = "Category insert success"
+        resObj.msg = "Category insert success";
       }
     });
   }
@@ -203,17 +216,125 @@ module.exports.insertCategory = function(req) {
 }
 
 /*-----------------------------------------------------------------*/
-//스케줄링 메서드
+
+
+
+
+/* 방 유저들의 카테고리 정보들을 받아 
+    알고리즘 결과값을 반환
+    카테고리 페이지. 분류해서 interestCategory에 삽입
+  한식 200 양식 201 일식 202 중식 203,
+  스포츠 300 노래방 301 영화관 302 오락실 303 놀이공원 304 pc방 305 카페 306
+  포장마차 500 바 501 이자카야 502 룸술집 503 일반술집 504
+  */
+
+function scheduleAlg(categoryObj) {
+  var resObj = new Object();
+  var reqObj = new Object();
+  var reqArr = Array.apply(0, new Array(17)).map(Number.prototype.valueOf,0);
+
+  for (var i = 0; i < categoryObj.length; i++) {
+    var idx;
+    var mostLike = categoryObj[i].mostLike*1;
+    var moreLike = categoryObj[i].moreLike*1;
+    var normalLike = categoryObj[i].normalLike*1;
+    if(mostLike/100 >= 2 && mostLike/100 < 3){ // 음식
+      idx = mostLike%200;
+      reqArr[idx] += 3; // 가중치 3
+    }
+
+    else if(mostLike/100 < 4){ // 놀거리
+      idx = mostLike%300+4;
+      reqArr[idx] += 3; 
+    }
+
+    else if(mostLike/100 >= 5 && mostLike/100 < 6){ // 술집
+      idx = mostLike%500+11;
+      reqArr[idx] += 3; 
+    }
+
+    /*---------*/
+
+    if(moreLike/100 >= 2 && moreLike/100 < 3){
+      idx = moreLike%200;
+      reqArr[idx] += 2;
+    }
+
+    else if(moreLike/100 < 4){ 
+      idx = moreLike%300+4;
+      reqArr[idx] += 2; 
+    }
+
+    else if(moreLike/100 >= 5 && moreLike/100 < 6){
+      idx = moreLike%500+11;
+      reqArr[idx] += 2; 
+    }
+
+    /*---------*/
+
+    if(normalLike/100 >= 2 && normalLike/100 < 3){ 
+      idx = normalLike%200;
+      reqArr[idx] += 1; 
+    }
+
+    else if(normalLike/100 < 4){
+      idx = normalLike%300+4;
+      reqArr[idx] += 1; 
+    }
+
+    else if(normalLike/100 >= 5 && normalLike/100 < 6){ 
+      idx = normalLike%500+11;
+      reqArr[idx] += 1; 
+    }
+  }
+  // 딥러닝 모듈에 데이터 전달을 위한 가공
+
+/* 파이썬 바이너리 파일 돌아가게 하기~
+
+*/
+
+  // 딥러닝을 통한 결과
+  resObj.scheduleArr = new Array();
+  var scheduleObj = new Object();
+  scheduleObj.startTime = "17:00";
+  scheduleObj.storeName = "샘플 당구장";
+  scheduleObj.category = "스포츠";
+  scheduleObj.address = "서울시 광진구";
+  resObj.scheduleArr.push(scheduleObj);
+
+  var scheduleObj = new Object();
+  scheduleObj.startTime = "19:00";
+  scheduleObj.storeName = "샘플 고깃집";
+  scheduleObj.category = "한식";
+  scheduleObj.address = "서울시 광진구";
+  resObj.scheduleArr.push(scheduleObj);
+
+  var scheduleObj = new Object();
+  scheduleObj.startTime = "21:00";
+  scheduleObj.storeName = "샘플 이자카야";
+  scheduleObj.category = "이자카야";
+  scheduleObj.address = "서울시 광진구";
+  resObj.scheduleArr.push(scheduleObj);
+
+
+  return resObj;
+}
+
+/*스케줄링 메서드
+
+ */
+
 module.exports.selectSchedule = function(req,res) {
   var reqArray = JSON.parse(req.body.schedule);
   var roomNum =reqArray.roomNum;
   var resObj = new Object();
+  var categoryObj = new Object();
   var sql = "SELECT * FROM chatroom where roomNum = ?";
   conn.query(sql, [roomNum], function(err, results, fields) {
     if (err) {
       console.log(err);
     } else {  
-         resObj.memberCount = results[0].count; // 방의 멤버 수
+         categoryObj.memberCount = results[0].count; // 방의 멤버 수
          var user1 = results[0].user1;
          var user2 = results[0].user2;
          var user3 = results[0].user3;
@@ -226,15 +347,15 @@ module.exports.selectSchedule = function(req,res) {
           if (err) {
             console.log(err);
           } else {
-            resObj.category = category;
+            categoryObj.category = category;
+            resObj = scheduleAlg(categoryObj.category);
+
             res.send(resObj);
           }
         })
        }
     })
 }
-
-
 
 
 
