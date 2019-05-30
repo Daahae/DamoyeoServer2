@@ -288,44 +288,45 @@ function scheduleAlg(categoryObj) {
 
   // 딥러닝을 통한 결과
   resObj.scheduleArr = new Array( new Array(5), new Array(5) );
-
-
-  var scheduleObj = new Object();
-  scheduleObj.startTime = "17:00";
-  scheduleObj.storeName = "샘플 당구장";
-  scheduleObj.category = "스포츠";
-  scheduleObj.address = "서울시 광진구";
-  resObj.scheduleArr[0].push(scheduleObj);
-
-  var scheduleObj = new Object();
-  scheduleObj.startTime = "19:00";
-  scheduleObj.storeName = "샘플 고깃집";
-  scheduleObj.category = "한식";
-  scheduleObj.address = "서울시 광진구";
-  resObj.scheduleArr[0].push(scheduleObj);
-
-  var scheduleObj = new Object();
-  scheduleObj.startTime = "21:00";
-  scheduleObj.storeName = "샘플 이자카야";
-  scheduleObj.category = "이자카야";
-  scheduleObj.address = "서울시 광진구";
-  resObj.scheduleArr[0].push(scheduleObj);
-
-  ///
+  var tmpArr = new Array();
 
   var scheduleObj = new Object();
   scheduleObj.startTime = "17:00";
   scheduleObj.storeName = "샘플 당구장";
   scheduleObj.category = "스포츠";
   scheduleObj.address = "서울시 광진구";
-  resObj.scheduleArr[1].push(scheduleObj);
+  tmpArr.push(scheduleObj);
 
   var scheduleObj = new Object();
   scheduleObj.startTime = "19:00";
   scheduleObj.storeName = "샘플 고깃집";
   scheduleObj.category = "한식";
   scheduleObj.address = "서울시 광진구";
-  resObj.scheduleArr[1].push(scheduleObj);
+  tmpArr.push(scheduleObj);
+
+  var scheduleObj = new Object();
+  scheduleObj.startTime = "21:00";
+  scheduleObj.storeName = "샘플 이자카야";
+  scheduleObj.category = "이자카야";
+  scheduleObj.address = "서울시 광진구";
+  tmpArr.push(scheduleObj);
+  resObj.scheduleArr.push(tmpArr);
+
+  ///
+  var tmpArr = new Array();
+  var scheduleObj = new Object();
+  scheduleObj.startTime = "17:00";
+  scheduleObj.storeName = "샘플 당구장";
+  scheduleObj.category = "스포츠";
+  scheduleObj.address = "서울시 광진구";
+  tmpArr.push(scheduleObj);
+
+  var scheduleObj = new Object();
+  scheduleObj.startTime = "19:00";
+  scheduleObj.storeName = "샘플 고깃집";
+  scheduleObj.category = "한식";
+  scheduleObj.address = "서울시 광진구";
+  tmpArr.push(scheduleObj);
 
   var scheduleObj = new Object();
   scheduleObj.startTime = "21:00";
@@ -333,9 +334,10 @@ function scheduleAlg(categoryObj) {
   scheduleObj.category = "이자카야";
   scheduleObj.address = "서울시 광진구";
   resObj.scheduleArr[1].push(scheduleObj);
-
+  tmpArr.push(scheduleObj);
+  resObj.scheduleArr.push(tmpArr);
   ///
-
+  /*
   resObj.scheduleArr = new Array();
   var scheduleObj = new Object();
   scheduleObj.startTime = "17:00";
@@ -357,7 +359,7 @@ function scheduleAlg(categoryObj) {
   scheduleObj.category = "이자카야";
   scheduleObj.address = "서울시 광진구";
   resObj.scheduleArr[2].push(scheduleObj);
-
+*/
 
   return resObj;
 }
@@ -397,10 +399,6 @@ module.exports.selectSchedule = function(req,res) {
        }
     })
 }
-
-
-
-
 
 
 /* 방번호를 받아 해당하는 채팅방의 정보 리턴

@@ -278,13 +278,19 @@ app.post('/usersToMid', function(req, res) {
 
   var reqArray = req.body.userArr;
   console.log(reqArray);
+  JSON.stringify(reqArray);
+  
+  var tmp = '{\"userArr\":[{\"latitude\":37.550277,\"longitude\":127.073053},\
+   {\"latitude\":37.545036,\"longitude\":127.054245},\
+   {\"latitude\":37.535413,\"longitude\":127.062388}]}';
+
+   console.log(tmp);
 
   var exec = require('child_process').execFileSync;
   var jsonPath = path.join(__dirname, '', 'ALGORITHM');
-  var tmp = reqArray.userArr;
   var resultObject;
   try {
-    resultObject = exec(jsonPath, [tmp], {
+    resultObject = exec(jsonPath, [reqArray], {
       encoding: "utf8"
     });
     resultObject = JSON.parse(resultObject);
