@@ -275,7 +275,29 @@ app.post('/initPos', function(req, res) {
    유저들좌표에서 중앙지점까지의 교통정보, 랜드마크 정보 반환(usersToMidArray)
 */
 app.post('/usersToMid', function(req, res) {
-  var usersToMidArray = usersToMidModule.getInfo(req, midInfo[0], midInfo[1]);
+
+  var reqArray = req.body.userArr;
+  console.log(reqArray);
+
+  var exec = require('child_process').execFileSync;
+  var jsonPath = path.join(__dirname, '', 'ALGORITHM');
+  var tmp = '{\"userArr\":[{\"latitude\":37.550277,\"longitude\":127.073053},\
+   {\"latitude\":37.545036,\"longitude\":127.054245},\
+   {\"latitude\":37.535413,\"longitude\":127.062388},\
+   {\"latitude\":37.531359,\"longitude\":127.083799}]}';
+  var resultObject;
+  try {
+    resultObject = exec(jsonPath, [tmp], {
+      encoding: "utf8"
+    });
+    resultObject = JSON.parse(resultObject);
+  } catch (err) {
+    err.stdout;
+    console.log(err);
+  }
+  console.log(resultObject);
+  var usersToMidArray = usersToMidModule.getInfo(req, resultObject.latitude, resultObject.longitude);
+  res.send(usersToMidArray);
 })
 
 /* 대중교통 경로정보

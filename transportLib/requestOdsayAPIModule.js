@@ -5,7 +5,7 @@ var errorHandlingModule = require('../errorHandlingModule.js');
  */
 module.exports.getData = function(start, end) {
 
-  var url = "https://api.odsay.com/v1/api/searchPubTransPath?SX=" + start[1] + "&SY=" + start[0] + "&EX=" + end[1] + "&EY=" + end[0] + "&apiKey=+l2drsr2yXqK+H7SHxhFuo8EF3vfOgpZlFGF2/lbkm8";
+  var url = "https://api.odsay.com/v1/api/searchPubTransPath?SX=" + start[1] + "&SY=" + start[0] + "&EX=" + end[1] + "&EY=" + end[0] + "&apiKey=%2Bl2drsr2yXqK%2BH7SHxhFuo8EF3vfOgpZlFGF2%2Flbkm8";
   var res = request('GET', url);
   var obj = JSON.parse(res.getBody('utf8'));
 

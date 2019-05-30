@@ -284,38 +284,85 @@ function scheduleAlg(categoryObj) {
   // 딥러닝 모듈에 데이터 전달을 위한 가공
 
 /* 파이썬 바이너리 파일 돌아가게 하기~
-
-*/
+ */
 
   // 딥러닝을 통한 결과
-  resObj.scheduleArr = new Array();
+  resObj.scheduleArr = new Array( new Array(5), new Array(5) );
+
+
   var scheduleObj = new Object();
   scheduleObj.startTime = "17:00";
   scheduleObj.storeName = "샘플 당구장";
   scheduleObj.category = "스포츠";
   scheduleObj.address = "서울시 광진구";
-  resObj.scheduleArr.push(scheduleObj);
+  resObj.scheduleArr[0].push(scheduleObj);
 
   var scheduleObj = new Object();
   scheduleObj.startTime = "19:00";
   scheduleObj.storeName = "샘플 고깃집";
   scheduleObj.category = "한식";
   scheduleObj.address = "서울시 광진구";
-  resObj.scheduleArr.push(scheduleObj);
+  resObj.scheduleArr[0].push(scheduleObj);
 
   var scheduleObj = new Object();
   scheduleObj.startTime = "21:00";
   scheduleObj.storeName = "샘플 이자카야";
   scheduleObj.category = "이자카야";
   scheduleObj.address = "서울시 광진구";
-  resObj.scheduleArr.push(scheduleObj);
+  resObj.scheduleArr[0].push(scheduleObj);
+
+  ///
+
+  var scheduleObj = new Object();
+  scheduleObj.startTime = "17:00";
+  scheduleObj.storeName = "샘플 당구장";
+  scheduleObj.category = "스포츠";
+  scheduleObj.address = "서울시 광진구";
+  resObj.scheduleArr[1].push(scheduleObj);
+
+  var scheduleObj = new Object();
+  scheduleObj.startTime = "19:00";
+  scheduleObj.storeName = "샘플 고깃집";
+  scheduleObj.category = "한식";
+  scheduleObj.address = "서울시 광진구";
+  resObj.scheduleArr[1].push(scheduleObj);
+
+  var scheduleObj = new Object();
+  scheduleObj.startTime = "21:00";
+  scheduleObj.storeName = "샘플 이자카야";
+  scheduleObj.category = "이자카야";
+  scheduleObj.address = "서울시 광진구";
+  resObj.scheduleArr[1].push(scheduleObj);
+
+  ///
+
+  resObj.scheduleArr = new Array();
+  var scheduleObj = new Object();
+  scheduleObj.startTime = "17:00";
+  scheduleObj.storeName = "샘플 당구장";
+  scheduleObj.category = "스포츠";
+  scheduleObj.address = "서울시 광진구";
+  resObj.scheduleArr[2].push(scheduleObj);
+
+  var scheduleObj = new Object();
+  scheduleObj.startTime = "19:00";
+  scheduleObj.storeName = "샘플 고깃집";
+  scheduleObj.category = "한식";
+  scheduleObj.address = "서울시 광진구";
+  resObj.scheduleArr[2].push(scheduleObj);
+
+  var scheduleObj = new Object();
+  scheduleObj.startTime = "21:00";
+  scheduleObj.storeName = "샘플 이자카야";
+  scheduleObj.category = "이자카야";
+  scheduleObj.address = "서울시 광진구";
+  resObj.scheduleArr[2].push(scheduleObj);
 
 
   return resObj;
 }
 
 /*스케줄링 메서드
-
  */
 
 module.exports.selectSchedule = function(req,res) {
