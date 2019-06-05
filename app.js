@@ -20,6 +20,7 @@ var moment = require('moment');
 require('moment-timezone');
 moment.tz.setDefault("Asia/Seoul");
 var date = moment().format('YYYY-MM-DD HH:mm:ss');
+var PythonShell = require('python-shell');
 
 app.set('views', __dirname + '/view');
 app.engine('html', require('ejs').renderFile);
@@ -200,7 +201,7 @@ app.post('/category', function(req, res) {
   res.send(resObj);
 })
 
-app.post('/scheduleResult', function(req, res) {
+app.get('/scheduleResult', function(req, res) {
   dbModule.selectSchedule(req,res);
 
 })

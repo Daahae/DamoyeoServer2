@@ -1,9 +1,7 @@
-
-    
 var mysql = require('mysql');
 var errorHandlingModule = require('./errorHandlingModule.js');
 var deasync = require('deasync');
-
+let {PythonShell} = require('python-shell')
 var conn = mysql.createConnection({
   host: 'localhost',
   port: '3306',
@@ -13,6 +11,21 @@ var conn = mysql.createConnection({
 });
 
 conn.connect();
+
+ 
+let options = {
+  mode: 'text',
+  pythonPath: '',
+  pythonOptions: ['-u'],
+  scriptPath: '',
+  args: ['value1', 'value2', 'value3']
+};
+ 
+PythonShell.run('test.py', options, function (err, results) {
+  if (err) throw err;
+  // results is an array consisting of messages collected during execution
+  console.log("results: "+ results);
+});
 
 
 /* 로그인 정보가 없을 시 디비에 계정추가, 안드에 0반환
@@ -286,47 +299,45 @@ function scheduleAlg(categoryObj) {
 /* 파이썬 바이너리 파일 돌아가게 하기~
  */
 
+ /*
   // 딥러닝을 통한 결과
   resObj.scheduleArr = new Array( new Array(5), new Array(5) );
-  var tmpArr = new Array();
 
   var scheduleObj = new Object();
   scheduleObj.startTime = "17:00";
   scheduleObj.storeName = "샘플 당구장";
   scheduleObj.category = "스포츠";
   scheduleObj.address = "서울시 광진구";
-  tmpArr.push(scheduleObj);
+  resObj.scheduleArr[0].push(scheduleObj);
 
   var scheduleObj = new Object();
   scheduleObj.startTime = "19:00";
   scheduleObj.storeName = "샘플 고깃집";
   scheduleObj.category = "한식";
   scheduleObj.address = "서울시 광진구";
-  tmpArr.push(scheduleObj);
+  resObj.scheduleArr[0].push(scheduleObj);
 
   var scheduleObj = new Object();
   scheduleObj.startTime = "21:00";
   scheduleObj.storeName = "샘플 이자카야";
   scheduleObj.category = "이자카야";
   scheduleObj.address = "서울시 광진구";
-  tmpArr.push(scheduleObj);
-  resObj.scheduleArr.push(tmpArr);
+  resObj.scheduleArr[0].push(scheduleObj);
 
   ///
-  var tmpArr = new Array();
   var scheduleObj = new Object();
   scheduleObj.startTime = "17:00";
   scheduleObj.storeName = "샘플 당구장";
   scheduleObj.category = "스포츠";
   scheduleObj.address = "서울시 광진구";
-  tmpArr.push(scheduleObj);
+  resObj.scheduleArr[1].push(scheduleObj);
 
   var scheduleObj = new Object();
   scheduleObj.startTime = "19:00";
   scheduleObj.storeName = "샘플 고깃집";
   scheduleObj.category = "한식";
   scheduleObj.address = "서울시 광진구";
-  tmpArr.push(scheduleObj);
+  resObj.scheduleArr[1].push(scheduleObj);
 
   var scheduleObj = new Object();
   scheduleObj.startTime = "21:00";
@@ -334,11 +345,8 @@ function scheduleAlg(categoryObj) {
   scheduleObj.category = "이자카야";
   scheduleObj.address = "서울시 광진구";
   resObj.scheduleArr[1].push(scheduleObj);
-  tmpArr.push(scheduleObj);
-  resObj.scheduleArr.push(tmpArr);
+
   ///
-  /*
-  resObj.scheduleArr = new Array();
   var scheduleObj = new Object();
   scheduleObj.startTime = "17:00";
   scheduleObj.storeName = "샘플 당구장";
@@ -359,8 +367,7 @@ function scheduleAlg(categoryObj) {
   scheduleObj.category = "이자카야";
   scheduleObj.address = "서울시 광진구";
   resObj.scheduleArr[2].push(scheduleObj);
-*/
-
+  */
   return resObj;
 }
 
@@ -368,8 +375,8 @@ function scheduleAlg(categoryObj) {
  */
 
 module.exports.selectSchedule = function(req,res) {
-  var reqArray = JSON.parse(req.body.schedule);
-  var roomNum =reqArray.roomNum;
+  //var reqArray = JSON.parse(req.body.schedule);
+  var roomNum =1;//reqArray.roomNum;
   var resObj = new Object();
   var categoryObj = new Object();
   var sql = "SELECT * FROM chatroom where roomNum = ?";
