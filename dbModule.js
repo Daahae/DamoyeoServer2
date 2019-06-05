@@ -298,6 +298,22 @@ function scheduleAlg(categoryObj) {
 
 /* 파이썬 바이너리 파일 돌아가게 하기~
  */
+  let options = {
+    mode: 'text',
+    pythonPath: '',
+    pythonOptions: ['-u'],
+    scriptPath: '',
+    args: reqArr
+  };
+  
+  PythonShell.run('test.py', options, function (err, results) {
+    if (err) throw err;;
+    resObj = results;
+  });
+  while (!errorHandlingModule.isObjectData(resObj)) { // 비동기 처리
+    deasync.sleep(100);
+  }
+  return resObj;
 
  /*
   // 딥러닝을 통한 결과
@@ -368,7 +384,7 @@ function scheduleAlg(categoryObj) {
   scheduleObj.address = "서울시 광진구";
   resObj.scheduleArr[2].push(scheduleObj);
   */
-  return resObj;
+  
 }
 
 /*스케줄링 메서드
@@ -399,7 +415,6 @@ module.exports.selectSchedule = function(req,res) {
           } else {
             categoryObj.category = category;
             resObj = scheduleAlg(categoryObj.category);
-
             res.send(resObj);
           }
         })
@@ -589,7 +604,6 @@ module.exports.requestRelation = function(req,res) {
 module.exports.insertRelation = function(req) {
   var reqObj = JSON.parse(req.body.friend);
   var resObj = new Object();
-  var userObj = new Object();
   var myEmail = reqObj.myEmail;
   var destEmail = reqObj.destEmail;
 
