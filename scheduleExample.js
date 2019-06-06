@@ -1,0 +1,5 @@
+module.exports.getData = function(req) {
+    var str = ["/home/ubuntu/server/recommendation_system","{\"scheduleArr\": [[{\"startTime\": \"0:00\", \"storeName\": \"매화양\", \"category\": \"중식\", \"address\": \"서울시 광진구\"}, {\"startTime\": \"2:00\", \"storeName\": \"미니분식\", \"category\": \"한식\", \"address\": \"서울시 광진구\"}, {\"startTime\": \"4:00\", \"storeName\": \"김가네장군왕족발\", \"category\": \"한식\", \"address\": \"서울시 광진구\"}], [{\"startTime\": \"0:00\", \"storeName\": \"손님밥상\", \"category\": \"한식\", \"address\": \"서울시 광진구\"}, {\"startTime\": \"2:00\", \"storeName\": \"금용각\", \"category\": \"중식\", \"address\": \"서울시 광진구\"}, {\"startTime\": \"4:00\", \"storeName\": \"군자교\", \"category\": \"중식\", \"address\": \"서울시 광진구\"}], [{\"startTime\": \"0:00\", \"storeName\": \"춘향\", \"category\": \"중식\", \"address\": \"서울시 광진구\"}, {\"startTime\": \"2:00\", \"storeName\": \"사천왕\", \"category\": \"중식\", \"address\": \"서울시 광진구\"}, {\"startTime\": \"4:00\", \"storeName\": \"왕가\", \"category\": \"중식\", \"address\": \"서울시 광진구\"}]]}"];
+     return str;
+}
+

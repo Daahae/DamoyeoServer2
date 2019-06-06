@@ -1,5 +1,6 @@
 var mysql = require('mysql');
 var errorHandlingModule = require('./errorHandlingModule.js');
+var scheduleExampleModule = require('./scheduleExample.js');
 var deasync = require('deasync');
 let {PythonShell} = require('python-shell')
 var conn = mysql.createConnection({
@@ -23,8 +24,11 @@ let options = {
  
 PythonShell.run('test.py', options, function (err, results) {
   if (err) throw err;
-  // results is an array consisting of messages collected during execution
-  console.log("results: "+ results);
+  var str = results.toString();
+  var strArr = str.split(',');
+
+
+  console.log(strArr[1]);
 });
 
 
@@ -32,7 +36,7 @@ PythonShell.run('test.py', options, function (err, results) {
    있을 시 1반환
    /login
 */
-module.exports.insertUserLoginInfo = function(req) {
+module.exports.insertUserLoginInfo = function(req,res) {
   var reqObj = JSON.parse(req.body.userLoginInfo);
   var resObj = new Object();
   var email = reqObj.email;
@@ -47,11 +51,8 @@ module.exports.insertUserLoginInfo = function(req) {
       console.log("계정삽입 완료");
       resObj.history = 0;
     }
+    res.send(resObj);
   });
-  while (!errorHandlingModule.isObjectData(resObj)) {
-    deasync.sleep(100);
-  }
-  return resObj;
 }
 
 
@@ -132,10 +133,10 @@ module.exports.selectMsgFromChatMsg = function(roomNum) { // 메시지 최근순
   다음페이지로 넘어갔을 떈 -1로 다시 갱신해야 할 듯
   차후에 chatroom 테이블에 이메일 삽입후 갱신하는 방향으로 바꿔야 할듯
 */
-module.exports.updateUserPosInfo = function(req) {
+module.exports.updateUserPosInfo = function(req,res) {
   var reqArray = JSON.parse(req.body.userPos); // 안드수신용
-  //var reqArray = req.body.userPos; // 테스트용
   var resArr = new Array();
+  var resObj = new Object();
   var email = reqArray.email;
   var startLat = reqArray.startLat + "";
   var startLng = reqArray.startLng + "";
@@ -152,21 +153,19 @@ module.exports.updateUserPosInfo = function(req) {
         if (err) {
         } else {
           for (var i = 0; i < userInfo.length; i++) {
-            var resObj = new Object();
-            resObj.email = userInfo[i].email;
-            resObj.nickname = userInfo[i].nickname;
-            resObj.startLat = userInfo[i].startLat;
-            resObj.startLng = userInfo[i].startLng;
-            resArr.push(resObj);
+            var tmpObj = new Object();
+            tmpObj.email = userInfo[i].email;
+            tmpObj.nickname = userInfo[i].nickname;
+            tmpObj.startLat = userInfo[i].startLat;
+            tmpObj.startLng = userInfo[i].startLng;
+            resArr.push(tmpObj);
           }
+          resObj.resArr = resArr;
         }
+        res.send(resObj);
       })
     }
   });
-  while (!errorHandlingModule.isData(resArr)) { // 비동기 처리
-    deasync.sleep(100);
-  }
-  return resArr;
 }
 
 /* 좌표정보 초기화
@@ -242,8 +241,8 @@ module.exports.insertCategory = function(req) {
   */
 
 function scheduleAlg(categoryObj) {
+  var errorCnt = 0;
   var resObj = new Object();
-  var reqObj = new Object();
   var reqArr = Array.apply(0, new Array(17)).map(Number.prototype.valueOf,0);
 
   for (var i = 0; i < categoryObj.length; i++) {
@@ -296,7 +295,7 @@ function scheduleAlg(categoryObj) {
   }
   // 딥러닝 모듈에 데이터 전달을 위한 가공
 
-/* 파이썬 바이너리 파일 돌아가게 하기~
+/* 파이썬 파일 돌아가게 하기~
  */
   let options = {
     mode: 'text',
@@ -306,93 +305,31 @@ function scheduleAlg(categoryObj) {
     args: reqArr
   };
   
-  PythonShell.run('test.py', options, function (err, results) {
-    if (err) throw err;;
+  PythonShell.run('/home/ubuntu/server/recommendation_system/store_recommendation_system.py', options, function (err, results) {
+    if (err) throw err;
     resObj = results;
   });
-  while (!errorHandlingModule.isObjectData(resObj)) { // 비동기 처리
-    deasync.sleep(100);
+  while (!errorHandlingModule.isObjectData(resObj) && errorCnt <= 50) { // 비동기 처리
+    console.log("selectSchedule");
+    console.log("errCnt : "+errorCnt);
+    errorCnt = errorCnt+1;
+    deasync.sleep(500);
   }
+
+  if(errorCnt >= 50){
+    resObj = scheduleExampleModule.getData();
+    console.log("tmp출력");
+  }
+
   return resObj;
-
- /*
-  // 딥러닝을 통한 결과
-  resObj.scheduleArr = new Array( new Array(5), new Array(5) );
-
-  var scheduleObj = new Object();
-  scheduleObj.startTime = "17:00";
-  scheduleObj.storeName = "샘플 당구장";
-  scheduleObj.category = "스포츠";
-  scheduleObj.address = "서울시 광진구";
-  resObj.scheduleArr[0].push(scheduleObj);
-
-  var scheduleObj = new Object();
-  scheduleObj.startTime = "19:00";
-  scheduleObj.storeName = "샘플 고깃집";
-  scheduleObj.category = "한식";
-  scheduleObj.address = "서울시 광진구";
-  resObj.scheduleArr[0].push(scheduleObj);
-
-  var scheduleObj = new Object();
-  scheduleObj.startTime = "21:00";
-  scheduleObj.storeName = "샘플 이자카야";
-  scheduleObj.category = "이자카야";
-  scheduleObj.address = "서울시 광진구";
-  resObj.scheduleArr[0].push(scheduleObj);
-
-  ///
-  var scheduleObj = new Object();
-  scheduleObj.startTime = "17:00";
-  scheduleObj.storeName = "샘플 당구장";
-  scheduleObj.category = "스포츠";
-  scheduleObj.address = "서울시 광진구";
-  resObj.scheduleArr[1].push(scheduleObj);
-
-  var scheduleObj = new Object();
-  scheduleObj.startTime = "19:00";
-  scheduleObj.storeName = "샘플 고깃집";
-  scheduleObj.category = "한식";
-  scheduleObj.address = "서울시 광진구";
-  resObj.scheduleArr[1].push(scheduleObj);
-
-  var scheduleObj = new Object();
-  scheduleObj.startTime = "21:00";
-  scheduleObj.storeName = "샘플 이자카야";
-  scheduleObj.category = "이자카야";
-  scheduleObj.address = "서울시 광진구";
-  resObj.scheduleArr[1].push(scheduleObj);
-
-  ///
-  var scheduleObj = new Object();
-  scheduleObj.startTime = "17:00";
-  scheduleObj.storeName = "샘플 당구장";
-  scheduleObj.category = "스포츠";
-  scheduleObj.address = "서울시 광진구";
-  resObj.scheduleArr[2].push(scheduleObj);
-
-  var scheduleObj = new Object();
-  scheduleObj.startTime = "19:00";
-  scheduleObj.storeName = "샘플 고깃집";
-  scheduleObj.category = "한식";
-  scheduleObj.address = "서울시 광진구";
-  resObj.scheduleArr[2].push(scheduleObj);
-
-  var scheduleObj = new Object();
-  scheduleObj.startTime = "21:00";
-  scheduleObj.storeName = "샘플 이자카야";
-  scheduleObj.category = "이자카야";
-  scheduleObj.address = "서울시 광진구";
-  resObj.scheduleArr[2].push(scheduleObj);
-  */
-  
 }
 
 /*스케줄링 메서드
  */
 
 module.exports.selectSchedule = function(req,res) {
-  //var reqArray = JSON.parse(req.body.schedule);
-  var roomNum =1;//reqArray.roomNum;
+  var reqArray = JSON.parse(req.body.schedule);
+  var roomNum = reqArray.roomNum;
   var resObj = new Object();
   var categoryObj = new Object();
   var sql = "SELECT * FROM chatroom where roomNum = ?";
@@ -400,6 +337,7 @@ module.exports.selectSchedule = function(req,res) {
     if (err) {
       console.log(err);
     } else {  
+         resObj.scheduleArr= new Object();
          categoryObj.memberCount = results[0].count; // 방의 멤버 수
          var user1 = results[0].user1;
          var user2 = results[0].user2;
@@ -414,7 +352,8 @@ module.exports.selectSchedule = function(req,res) {
             console.log(err);
           } else {
             categoryObj.category = category;
-            resObj = scheduleAlg(categoryObj.category);
+            resObj.scheduleArr = scheduleAlg(categoryObj.category);
+            console.log(resObj);
             res.send(resObj);
           }
         })
@@ -428,13 +367,13 @@ module.exports.selectSchedule = function(req,res) {
    해당 방의 사람들이 찍은 마커 정보 반환
    /detailChatRoom
 */
-module.exports.selectDetailChatRoom = function(req) {
-  console.log(req.body);
+module.exports.selectDetailChatRoom = function(req,res) {
   var reqObj = JSON.parse(req.body.chatRoom);
   var resObj = new Object();
   resObj.userArr = new Array();
   var email = reqObj.email;
   var roomNum = parseInt(reqObj.roomNumber);
+  console.log("roomNum :"+ roomNum);
 
   // 방 입장시 증가
   var sql = "SELECT * FROM chatroom WHERE roomNum = ?";
@@ -458,17 +397,10 @@ module.exports.selectDetailChatRoom = function(req) {
         } else {
           resObj.userArr.push(users);
         }
+        res.send(resObj);
       });
     }
   });
-
-  
-  while (!errorHandlingModule.isData(resObj.userArr)) { 
-    console.log("selectDetailChatRoom 에러");
-    deasync.sleep(100);
-  }
-  console.log(resObj);
-  return resObj;
 }
 
 /*  이메일이 속해있는 전체 방정보 가져오기
@@ -500,7 +432,6 @@ module.exports.selectChatRoom = function(req) {
     console.log("selectChatRoom 에러");
    deasync.sleep(100);
   }
-  console.log(resObj);
   return resObj;
 }
 
@@ -590,7 +521,6 @@ module.exports.requestRelation = function(req,res) {
             resObj.waitingFriendArr.push(userObj);
           }
         }
-        console.log(resObj);
         res.send(resObj);
       });
     }

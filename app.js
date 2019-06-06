@@ -20,7 +20,6 @@ var moment = require('moment');
 require('moment-timezone');
 moment.tz.setDefault("Asia/Seoul");
 var date = moment().format('YYYY-MM-DD HH:mm:ss');
-var PythonShell = require('python-shell');
 
 app.set('views', __dirname + '/view');
 app.engine('html', require('ejs').renderFile);
@@ -154,7 +153,6 @@ app.get('/', function(req, res) {
 app.get('/test', function(req, res) {
   var exec = require('child_process').execFileSync;
   var jsonPath = path.join(__dirname, '', 'ALGORITHM');
-  console.log(jsonPath);
 
   var tmp = '{\"userArr\":[{\"latitude\":37.550277,\"longitude\":127.073053},\
    {\"latitude\":37.545036,\"longitude\":127.054245},\
@@ -186,8 +184,7 @@ app.get('/chat', function(req, res) {
    있을 시 1반환
 */
 app.post('/login', function(req, res) {
-  var resObj = dbModule.insertUserLoginInfo(req);
-  res.send(resObj);
+  dbModule.insertUserLoginInfo(req,res);
 })
 
 /*  카테고리 페이지. 분류해서 interestCategory에 삽입
@@ -197,18 +194,13 @@ app.post('/login', function(req, res) {
     501한식 502양식 502일식 504중식 505기타
 */
 app.post('/category', function(req, res) {
-  var resObj = dbModule.insertCategory(req);
-  res.send(resObj);
+  dbModule.insertCategory(req,res);
 })
-
-app.get('/scheduleResult', function(req, res) {
+app.post('/scheduleResult', function(req, res) {
   dbModule.selectSchedule(req,res);
-
 })
-
 app.post('/detailScheduleResult', function(req, res) {
-  var resObj = dbModule.selectDetailSchedule(req);
-  res.send(resObj);
+   dbModule.selectDetailSchedule(req,res);
 })
 
 
@@ -238,8 +230,8 @@ app.post('/friendAccept', function(req, res) {
 /* 채팅방 정보 넘겨주기
 */
 app.post('/detailChatRoom', function(req, res) {
-  var resObj = dbModule.selectDetailChatRoom(req);
-  res.send(resObj)
+  dbModule.selectDetailChatRoom(req,res);
+
 })
 app.post('/chatRoom', function(req, res) {
   var resObj= dbModule.selectChatRoom(req);
@@ -254,10 +246,7 @@ app.post('/chatRoom', function(req, res) {
 /* 지도 뷰 갱신
 */
 app.post('/renewPos', function(req, res) {
-  var resObj = new Object();
-  resObj.resArr = new Array();
-  resObj.resArr = dbModule.updateUserPosInfo(req);
-  res.send(resObj);
+   dbModule.updateUserPosInfo(req,res);
 })
 
 /* 좌표 정보 초기화
