@@ -38,10 +38,10 @@ PythonShell.run('test.py', options, function (err, results) {
 */
 module.exports.insertUserLoginInfo = function(req,res) {
   var reqObj = JSON.parse(req.body.userLoginInfo);
+  console.log(reqObj);
   var resObj = new Object();
   var email = reqObj.email;
   var nickname = reqObj.nickname;
-
   var sql = "INSERT INTO user (email, nickname) VALUES (?, ?)";
   conn.query(sql, [email, nickname], function(err, results, fields) {
     if (err) {
@@ -160,6 +160,7 @@ module.exports.updateUserPosInfo = function(req,res) {
             tmpObj.startLng = userInfo[i].startLng;
             resArr.push(tmpObj);
           }
+          
           resObj.resArr = resArr;
         }
         res.send(resObj);
@@ -202,7 +203,6 @@ module.exports.initUserPosInfo = function(req) {
 */
 module.exports.insertCategory = function(req) {
   var reqArray = JSON.parse(req.body.categoryInfoArr);
-
   var resObj = new Object();
 
   for (var i = 0; i < reqArray.length; i++) {
@@ -240,11 +240,11 @@ module.exports.insertCategory = function(req) {
   포장마차 500 바 501 이자카야 502 룸술집 503 일반술집 504
   */
 
-function scheduleAlg(categoryObj) {
+function scheduleAlg(categoryObj, memberCount) {
   var errorCnt = 0;
   var resObj = new Object();
-  var reqArr = Array.apply(0, new Array(17)).map(Number.prototype.valueOf,0);
-
+  var reqArr = Array.apply(0.0, new Array(17)).map(Number.prototype.valueOf,0);
+  console.log(categoryObj);
   for (var i = 0; i < categoryObj.length; i++) {
     var idx;
     var mostLike = categoryObj[i].mostLike*1;
@@ -252,47 +252,53 @@ function scheduleAlg(categoryObj) {
     var normalLike = categoryObj[i].normalLike*1;
     if(mostLike/100 >= 2 && mostLike/100 < 3){ // 음식
       idx = mostLike%200;
-      reqArr[idx] += 3; // 가중치 3
+      reqArr[idx] += 3.0; // 가중치 3
     }
     else if(mostLike/100 < 4){ // 놀거리
       idx = mostLike%300+4;
-      reqArr[idx] += 3; 
+      reqArr[idx] += 3.0; 
     }
     else if(mostLike/100 >= 5 && mostLike/100 < 6){ // 술집
       idx = mostLike%500+11;
-      reqArr[idx] += 3; 
+      reqArr[idx] += 3.0; 
     }
 
     /*---------*/
 
     if(moreLike/100 >= 2 && moreLike/100 < 3){
       idx = moreLike%200;
-      reqArr[idx] += 2;
+      reqArr[idx] += 2.0;
     }
     else if(moreLike/100 < 4){ 
       idx = moreLike%300+4;
-      reqArr[idx] += 2; 
+      reqArr[idx] += 2.0; 
     }
     else if(moreLike/100 >= 5 && moreLike/100 < 6){
       idx = moreLike%500+11;
-      reqArr[idx] += 2; 
+      reqArr[idx] += 2.0; 
     }
 
     /*---------*/
 
     if(normalLike/100 >= 2 && normalLike/100 < 3){ 
       idx = normalLike%200;
-      reqArr[idx] += 1; 
+      reqArr[idx] += 1.0; 
     }
     else if(normalLike/100 < 4){
       idx = normalLike%300+4;
-      reqArr[idx] += 1; 
+      reqArr[idx] += 1.0; 
     }
     else if(normalLike/100 >= 5 && normalLike/100 < 6){ 
       idx = normalLike%500+11;
-      reqArr[idx] += 1; 
+      reqArr[idx] += 1.0; 
     }
   }
+  for (var i = 0; i < 17; i++)
+    reqArr[i] /=memberCount;
+
+
+
+  console.log(reqArr);
   // 딥러닝 모듈에 데이터 전달을 위한 가공
 
 /* 파이썬 파일 돌아가게 하기~
@@ -352,9 +358,9 @@ module.exports.selectSchedule = function(req,res) {
             console.log(err);
           } else {
             categoryObj.category = category;
-            resObj.scheduleArr = scheduleAlg(categoryObj.category);
-            console.log(resObj);
+            resObj.scheduleArr = scheduleAlg(categoryObj.category,results[0].count);
             res.send(resObj);
+            console.log(resObj);
           }
         })
        }

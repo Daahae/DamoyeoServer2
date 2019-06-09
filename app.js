@@ -184,6 +184,7 @@ app.get('/chat', function(req, res) {
    있을 시 1반환
 */
 app.post('/login', function(req, res) {
+  console.log("로그인~~");
   dbModule.insertUserLoginInfo(req,res);
 })
 
@@ -197,6 +198,10 @@ app.post('/category', function(req, res) {
   dbModule.insertCategory(req,res);
 })
 app.post('/scheduleResult', function(req, res) {
+  dbModule.selectSchedule(req,res);
+})
+
+app.get('/scheduleResult', function(req, res) {
   dbModule.selectSchedule(req,res);
 })
 app.post('/detailScheduleResult', function(req, res) {
