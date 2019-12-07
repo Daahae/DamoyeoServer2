@@ -40,15 +40,13 @@ io.sockets.on('connection', function(socket) {
   var usernames = {};
   var rooms = [1, 2, 3];
   var message = new Object();
-  console.log('Socket ID : ' + socket.id + ', Connect');
 
   /* email 받아서 어느방에 권한이 있는지 수정
    */
   socket.on('clientMessage', function(currentUser) {
-    console.log('CurrentUser : ' + currentUser);
     socket.currentUser = currentUser; // 소켓 세션에 현재 접속 유저 등록
     socket.currentNickname = dbModule.selectFriendEmailbySocket(currentUser);
-    console.log(socket.currentNickname );
+
 
     message.msg = 'current user is';
     message.data = currentUser;
@@ -87,7 +85,6 @@ io.sockets.on('connection', function(socket) {
     message.data = data;
     var time = moment().format('YYYY-MM-DD HH:mm:ss');
     var roomNum = socket.room;
-    console.log(roomNum);
     dbModule.insertMsgToChatMsg(message,roomNum, time);
     io.sockets.in(socket.room).emit('updateChat', message);
   });
@@ -116,7 +113,6 @@ io.sockets.on('connection', function(socket) {
     // socket.emit('updaterooms', rooms, newroom);
 
     message.user = 'msg';
-    console.log(socket.room);
     message.data = dbModule.selectMsgFromChatMsg(socket.room);
     socket.emit('updateChat', message);
   });
