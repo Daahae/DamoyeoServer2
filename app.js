@@ -109,7 +109,7 @@ io.sockets.on('connection', function(socket) {
 
     message.user = '[broadcast]';
     message.data = socket.username + ' has joined this room';
-    socket.broadcast.to(newroom).emit('updatechat',message); //  개인에게 방송?
+    socket.broadcast.to(newroom).emit('updatechat',message); 
     // socket.emit('updaterooms', rooms, newroom);
 
     message.user = 'msg';
